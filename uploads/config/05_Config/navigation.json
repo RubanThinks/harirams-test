@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "title": "Home",
+      "url": "/"
+    },
+    {
+      "title": "Shop",
+      "url": "/shop"
+    },
+    {
+      "title": "Our Story",
+      "url": "/our-story"
+    },
+    {
+      "title": "Recipes",
+      "url": "/recipes"
+    },
+    {
+      "title": "FAQ",
+      "url": "/faq"
+    },
+    {
+      "title": "Contact",
+      "url": "/contact"
+    }
+  ]
+}

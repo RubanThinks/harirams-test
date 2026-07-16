@@ -1,88 +1,352 @@
-from fastapi import FastAPI, APIRouter
+"""
+Hariram's Pure Cow Ghee — Backend API
+FastAPI + MongoDB. Phase 1 (Guest checkout, mocked OTP, mocked payment).
+All business content is config-driven from /app/backend/config/*.json
+"""
+from fastapi import FastAPI, APIRouter, HTTPException, Query
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import json
 import logging
+import random
+import re
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional, Any
 import uuid
 from datetime import datetime, timezone
 
-
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+CONFIG_DIR = ROOT_DIR / "config"
+load_dotenv(ROOT_DIR / ".env")
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+# MongoDB
+mongo_url = os.environ["MONGO_URL"]
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ["DB_NAME"]]
 
-# Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(title="Hariram's Ghee API", version="1.0.0")
+api = APIRouter(prefix="/api")
 
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+log = logging.getLogger("hariram")
 
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
+# ---------------------------------------------------------------------------
+# Config loader
+# ---------------------------------------------------------------------------
+def load_config(name: str) -> Any:
+    """Load a JSON config file from /app/backend/config/{name}.json"""
+    path = CONFIG_DIR / f"{name}.json"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"Config '{name}' not found")
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+ALLOWED_CONFIGS = {
+    "company", "theme", "site_config", "navigation", "hero_banners",
+    "products", "benefits", "footer", "social_links", "seo",
+    "shipping_rates", "faq", "legal", "features", "testimonials",
+    "asset_manifest",
+}
+
+
+@api.get("/config/{name}")
+async def get_config(name: str):
+    if name not in ALLOWED_CONFIGS:
+        raise HTTPException(status_code=404, detail="Unknown config")
+    return load_config(name)
+
+
+@api.get("/config")
+async def get_all_configs():
+    """Convenience: return all configs at once for the initial app boot."""
+    return {name: load_config(name) for name in ALLOWED_CONFIGS}
+
+
+# ---------------------------------------------------------------------------
+# Products (config-driven; DB used only for orders/customers)
+# ---------------------------------------------------------------------------
+@api.get("/products")
+async def list_products(available_only: bool = True):
+    data = load_config("products").get("products", [])
+    if available_only:
+        data = [p for p in data if p.get("available", True)]
+    data.sort(key=lambda p: p.get("displaySequence", 999))
+    return {"products": data}
+
+
+@api.get("/products/{sku}")
+async def get_product(sku: str):
+    for p in load_config("products").get("products", []):
+        if p.get("sku") == sku:
+            return p
+    raise HTTPException(status_code=404, detail="Product not found")
+
+
+# ---------------------------------------------------------------------------
+# Shipping calculation
+# ---------------------------------------------------------------------------
+class ShippingRequest(BaseModel):
+    pincode: str
+    city: Optional[str] = None
+    state: Optional[str] = None
+    subtotal: float = 0
+
+
+@api.post("/shipping/calculate")
+async def calculate_shipping(req: ShippingRequest):
+    rates = load_config("shipping_rates")
+    pincode = (req.pincode or "").strip()
+
+    if not re.fullmatch(r"\d{6}", pincode):
+        raise HTTPException(status_code=400, detail="Invalid PIN code. Must be 6 digits.")
+
+    if pincode in rates.get("unserviceablePincodes", []):
+        raise HTTPException(status_code=422, detail="Sorry — we do not ship to this PIN code yet.")
+
+    # Free shipping threshold
+    free_above = rates.get("freeShippingAbove")
+    if free_above and req.subtotal >= float(free_above):
+        return {"charge": 0, "rule": "FREE_SHIPPING", "freeShippingAbove": free_above}
+
+    # Find most specific rule
+    rules = sorted(rates.get("rules", []), key=lambda r: r.get("priority", 999))
+    for rule in rules:
+        rtype = rule.get("type")
+        rval = str(rule.get("value", "")).lower().strip()
+        if rtype == "CITY" and req.city and req.city.lower().strip() == rval:
+            return {"charge": float(rule["charge"]), "rule": f"CITY:{rule['value']}"}
+        if rtype == "STATE" and req.state and req.state.lower().strip() == rval:
+            return {"charge": float(rule["charge"]), "rule": f"STATE:{rule['value']}"}
+        if rtype == "PINCODE" and pincode == str(rule.get("value")):
+            return {"charge": float(rule["charge"]), "rule": f"PINCODE:{rule['value']}"}
+
+    return {"charge": float(rates.get("defaultCharge", 0)), "rule": "DEFAULT"}
+
+
+# ---------------------------------------------------------------------------
+# OTP (mocked — fixed 123456 for Phase 1)
+# ---------------------------------------------------------------------------
+class OtpSendRequest(BaseModel):
+    phone: str
+
+
+class OtpVerifyRequest(BaseModel):
+    phone: str
+    otp: str
+
+
+MOCK_OTP = "123456"
+
+
+def _norm_phone(phone: str) -> str:
+    p = re.sub(r"\D", "", phone or "")
+    if len(p) == 12 and p.startswith("91"):
+        p = p[2:]
+    return p
+
+
+@api.post("/auth/send-otp")
+async def send_otp(req: OtpSendRequest):
+    phone = _norm_phone(req.phone)
+    if len(phone) != 10:
+        raise HTTPException(status_code=400, detail="Enter a valid 10-digit Indian mobile number")
+
+    doc = {
+        "phone": phone,
+        "otp": MOCK_OTP,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "attempts": 0,
+        "verified": False,
+    }
+    await db.otp_requests.update_one({"phone": phone}, {"$set": doc}, upsert=True)
+    log.info(f"[MOCK OTP] Sent OTP {MOCK_OTP} to +91-{phone}")
+    return {
+        "success": True,
+        "message": f"OTP sent to +91-{phone}",
+        "mock": True,
+        "hint": f"Use {MOCK_OTP} to verify (mock mode — replace with real SMS provider before go-live).",
+    }
+
+
+@api.post("/auth/verify-otp")
+async def verify_otp(req: OtpVerifyRequest):
+    phone = _norm_phone(req.phone)
+    rec = await db.otp_requests.find_one({"phone": phone}, {"_id": 0})
+    if not rec:
+        raise HTTPException(status_code=404, detail="Please request an OTP first")
+
+    await db.otp_requests.update_one({"phone": phone}, {"$inc": {"attempts": 1}})
+    if rec.get("attempts", 0) >= 5:
+        raise HTTPException(status_code=429, detail="Too many attempts. Please request a new OTP.")
+
+    if (req.otp or "").strip() != rec["otp"]:
+        raise HTTPException(status_code=401, detail="Invalid OTP. Please try again.")
+
+    await db.otp_requests.update_one({"phone": phone}, {"$set": {"verified": True}})
+    return {"success": True, "phone": phone, "verified": True}
+
+
+# ---------------------------------------------------------------------------
+# Customer helper — repeat customer address lookup
+# ---------------------------------------------------------------------------
+@api.get("/customers/last-address")
+async def get_last_address(phone: str = Query(...)):
+    p = _norm_phone(phone)
+    order = await db.orders.find_one(
+        {"phone": p}, {"_id": 0}, sort=[("created_at", -1)]
+    )
+    if not order:
+        return {"found": False}
+    return {
+        "found": True,
+        "name": order.get("name"),
+        "address": order.get("address"),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Orders
+# ---------------------------------------------------------------------------
+class Address(BaseModel):
+    name: str
+    line1: str
+    line2: Optional[str] = ""
+    landmark: Optional[str] = ""
+    city: str
+    state: str
+    pincode: str
+
+
+class OrderItem(BaseModel):
+    sku: str
+    name: str
+    variant: str
+    price: float
+    quantity: int
+    image: Optional[str] = None
+
+
+class CreateOrderRequest(BaseModel):
+    phone: str
+    address: Address
+    items: List[OrderItem]
+    subtotal: float
+    shipping: float
+    total: float
+    paymentMethod: str = "MOCK"  # UPI / CARD / NETBANKING / MOCK
+
+
+class Order(BaseModel):
+    model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    orderNumber: str
+    phone: str
+    name: str
+    address: Address
+    items: List[OrderItem]
+    subtotal: float
+    shipping: float
+    total: float
+    paymentMethod: str
+    paymentStatus: str  # PAID / FAILED / PENDING
+    status: str         # CONFIRMED / CANCELLED
+    created_at: str
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
 
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
+def _order_number() -> str:
+    ts = datetime.now(timezone.utc).strftime("%y%m%d")
+    rand = random.randint(1000, 9999)
+    return f"HR{ts}{rand}"
+
+
+@api.post("/orders")
+async def create_order(req: CreateOrderRequest):
+    phone = _norm_phone(req.phone)
+
+    # Verify phone was OTP-verified in this session
+    otp_rec = await db.otp_requests.find_one({"phone": phone}, {"_id": 0})
+    if not otp_rec or not otp_rec.get("verified"):
+        raise HTTPException(status_code=401, detail="Phone number not verified. Please verify OTP first.")
+
+    if not req.items:
+        raise HTTPException(status_code=400, detail="Cart is empty")
+
+    # Mock payment — always success in Phase 1
+    payment_status = "PAID"
+
+    order = Order(
+        orderNumber=_order_number(),
+        phone=phone,
+        name=req.address.name,
+        address=req.address,
+        items=req.items,
+        subtotal=req.subtotal,
+        shipping=req.shipping,
+        total=req.total,
+        paymentMethod=req.paymentMethod,
+        paymentStatus=payment_status,
+        status="CONFIRMED",
+        created_at=datetime.now(timezone.utc).isoformat(),
+    )
+    doc = json.loads(order.model_dump_json())
+    await db.orders.insert_one(dict(doc))  # insert copy so `doc` isn't mutated with _id
+
+    log.info(f"[ORDER CREATED] {order.orderNumber} — ₹{order.total} — {phone}")
+    return {"success": True, "order": doc}
+
+
+@api.get("/orders/{order_id}")
+async def get_order(order_id: str):
+    o = await db.orders.find_one(
+        {"$or": [{"id": order_id}, {"orderNumber": order_id}]},
+        {"_id": 0},
+    )
+    if not o:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return o
+
+
+# ---------------------------------------------------------------------------
+# Newsletter (simple capture)
+# ---------------------------------------------------------------------------
+class Newsletter(BaseModel):
+    email: str
+
+
+@api.post("/newsletter/subscribe")
+async def subscribe(req: Newsletter):
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", req.email or ""):
+        raise HTTPException(status_code=400, detail="Please enter a valid email")
+    await db.newsletter.update_one(
+        {"email": req.email.lower()},
+        {"$set": {"email": req.email.lower(), "created_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"success": True}
+
+
+# ---------------------------------------------------------------------------
+@api.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"status": "ok", "brand": "Hariram's Pure Cow Ghee", "version": "1.0.0"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
-app.include_router(api_router)
+app.include_router(api)
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

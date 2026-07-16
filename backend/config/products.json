@@ -1,0 +1,60 @@
+{
+  "products": [
+    {
+      "sku": "HG200",
+      "name": "Pure Cow Ghee",
+      "variant": "200 ml",
+      "price": 199,
+      "mrp": 249,
+      "description": "Handcrafted traditional cow ghee. A perfect starter pack.",
+      "idealFor": "First-time Buyers",
+      "image": "/assets/products/ghee_bottle.png",
+      "bestSeller": false,
+      "available": true,
+      "displaySequence": 1,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG500",
+      "name": "Pure Cow Ghee",
+      "variant": "500 ml",
+      "price": 399,
+      "mrp": 499,
+      "description": "Everyday goodness for the whole family — prepared the traditional way.",
+      "idealFor": "Small Families",
+      "image": "/assets/products/ghee_bottle.png",
+      "bestSeller": true,
+      "available": true,
+      "displaySequence": 2,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG1000",
+      "name": "Pure Cow Ghee",
+      "variant": "1000 ml",
+      "price": 699,
+      "mrp": 899,
+      "description": "Made from the finest Indian cows. Ideal for daily home cooking.",
+      "idealFor": "Daily Home Use",
+      "image": "/assets/products/ghee_bottle.png",
+      "bestSeller": false,
+      "available": true,
+      "displaySequence": 3,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG5000",
+      "name": "Pure Cow Ghee",
+      "variant": "5 Litre",
+      "price": 3299,
+      "mrp": 3799,
+      "description": "Bulk pack for restaurants, temples and large families.",
+      "idealFor": "Restaurants & Bulk Use",
+      "image": "/assets/products/ghee_bottle.png",
+      "bestSeller": false,
+      "available": true,
+      "displaySequence": 4,
+      "family": "ghee"
+    }
+  ]
+}

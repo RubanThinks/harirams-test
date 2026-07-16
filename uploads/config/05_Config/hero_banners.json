@@ -1,0 +1,36 @@
+{
+  "banners": [
+    {
+      "id": "mother_daughter",
+      "enabled": true,
+      "desktop": "Mother_Daughter/hero_desktop.png",
+      "tablet": "Mother_Daughter/hero_tablet.png",
+      "mobile": "Mother_Daughter/hero_mobile.png",
+      "cta": "Shop Pure Ghee"
+    },
+    {
+      "id": "temple",
+      "enabled": true,
+      "desktop": "Temple/hero_desktop.png",
+      "tablet": "Temple/hero_tablet.png",
+      "mobile": "Temple/hero_mobile.png",
+      "cta": "Shop Pure Ghee"
+    },
+    {
+      "id": "joint_family",
+      "enabled": true,
+      "desktop": "Joint_Family/hero_desktop.png",
+      "tablet": "Joint_Family/hero_tablet.png",
+      "mobile": "Joint_Family/hero_mobile.png",
+      "cta": "Shop Pure Ghee"
+    },
+    {
+      "id": "village",
+      "enabled": false,
+      "desktop": "Village/hero_desktop.png",
+      "tablet": "Village/hero_tablet.png",
+      "mobile": "Village/hero_mobile.png",
+      "cta": "Shop Pure Ghee"
+    }
+  ]
+}

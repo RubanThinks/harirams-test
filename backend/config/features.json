@@ -1,0 +1,7 @@
+{
+  "recipes": true,
+  "faq": true,
+  "wishlist": false,
+  "blog": false,
+  "analytics": true
+}

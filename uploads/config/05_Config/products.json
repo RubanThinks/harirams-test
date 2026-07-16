@@ -1,0 +1,32 @@
+{
+  "products": [
+    {
+      "sku": "HG200",
+      "name": "Pure Cow Ghee",
+      "variant": "200 ml",
+      "price": 399,
+      "bestSeller": false
+    },
+    {
+      "sku": "HG500",
+      "name": "Pure Cow Ghee",
+      "variant": "500 ml",
+      "price": 799,
+      "bestSeller": true
+    },
+    {
+      "sku": "HG1000",
+      "name": "Pure Cow Ghee",
+      "variant": "1000 ml",
+      "price": 1499,
+      "bestSeller": false
+    },
+    {
+      "sku": "HG5000",
+      "name": "Pure Cow Ghee",
+      "variant": "5 Litre",
+      "price": 6999,
+      "bestSeller": false
+    }
+  ]
+}

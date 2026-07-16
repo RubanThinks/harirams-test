@@ -1,0 +1,10 @@
+{
+  "theme": "default",
+  "language": "en",
+  "guestCheckout": true,
+  "heroRotation": true,
+  "rotationIntervalSeconds": 8,
+  "enableSearch": true,
+  "enableCart": true,
+  "enableAccount": false
+}

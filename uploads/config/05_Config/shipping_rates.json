@@ -1,0 +1,23 @@
+{
+  "defaultCharge": "<DEFAULT_RATE>",
+  "rules": [
+    {
+      "priority": 1,
+      "type": "CITY",
+      "value": "Chennai",
+      "charge": "<CHENNAI_RATE>"
+    },
+    {
+      "priority": 2,
+      "type": "STATE",
+      "value": "Tamil Nadu",
+      "charge": "<TN_RATE>"
+    },
+    {
+      "priority": 999,
+      "type": "DEFAULT",
+      "value": "*",
+      "charge": "<DEFAULT_RATE>"
+    }
+  ]
+}

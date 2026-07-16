@@ -1,0 +1,10 @@
+{
+  "defaultCharge": 149,
+  "freeShippingAbove": 999,
+  "rules": [
+    { "priority": 1, "type": "CITY", "value": "Chennai", "charge": 40 },
+    { "priority": 2, "type": "STATE", "value": "Tamil Nadu", "charge": 80 },
+    { "priority": 999, "type": "DEFAULT", "value": "*", "charge": 149 }
+  ],
+  "unserviceablePincodes": []
+}

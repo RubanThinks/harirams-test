@@ -2,114 +2,282 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-    margin: 0;
-    font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-    font-family:
-        source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
-}
+/* Brand fonts — Playfair (headings) + Lora (body) + Cormorant (accents) */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Lora:ital,wght@0,400..700;1,400..700&family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&display=swap");
 
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 3.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 3.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 3.9%;
-        --primary: 0 0% 9%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 0 0% 96.1%;
-        --secondary-foreground: 0 0% 9%;
-        --muted: 0 0% 96.1%;
-        --muted-foreground: 0 0% 45.1%;
-        --accent: 0 0% 96.1%;
-        --accent-foreground: 0 0% 9%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 89.8%;
-        --input: 0 0% 89.8%;
-        --ring: 0 0% 3.9%;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
-        --radius: 0.5rem;
-    }
-    .dark {
-        --background: 0 0% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
-        --secondary: 0 0% 14.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 63.9%;
-        --accent: 0 0% 14.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
-        --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
+        /* Brand palette (Hariram's) — sourced from theme.json */
+        --brand-primary: #174C2B;          /* Deep temple green */
+        --brand-primary-dark: #0F3620;
+        --brand-secondary: #D89B22;        /* Warm gold */
+        --brand-accent: #D93F3F;           /* Warm terracotta red (CTA) */
+        --brand-accent-dark: #B22222;
+        --brand-cream: #FFF8EE;            /* Cream ivory background */
+        --brand-surface: #FFFDF7;
+        --brand-text: #3B2414;             /* Dark brown */
+        --brand-muted: #6B5A46;
+        --brand-border: #EADFC7;
+
+        /* shadcn tokens mapped to brand */
+        --background: 40 100% 97%;         /* cream */
+        --foreground: 26 43% 19%;          /* dark brown */
+        --card: 42 100% 98%;
+        --card-foreground: 26 43% 19%;
+        --popover: 42 100% 98%;
+        --popover-foreground: 26 43% 19%;
+        --primary: 141 55% 19%;            /* deep green */
+        --primary-foreground: 40 100% 97%;
+        --secondary: 41 76% 49%;           /* gold */
+        --secondary-foreground: 26 43% 19%;
+        --muted: 40 40% 92%;
+        --muted-foreground: 30 24% 35%;
+        --accent: 0 65% 55%;               /* red */
+        --accent-foreground: 40 100% 97%;
+        --destructive: 0 65% 45%;
+        --destructive-foreground: 40 100% 97%;
+        --border: 40 46% 84%;
+        --input: 40 46% 84%;
+        --ring: 141 55% 19%;
+        --radius: 0.9rem;
     }
 }
 
 @layer base {
-    * {
-        @apply border-border;
-    }
+    * { @apply border-border; }
+    html { scroll-behavior: smooth; }
     body {
-        @apply bg-background text-foreground;
+        margin: 0;
+        background-color: var(--brand-cream);
+        color: var(--brand-text);
+        font-family: "Lora", Georgia, serif;
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
+    h1, h2, h3, h4, h5 {
+        font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: var(--brand-primary);
+    }
+    ::selection { background: var(--brand-secondary); color: var(--brand-text); }
 }
 
-@layer base {
-    [data-debug-wrapper="true"] {
-        display: contents !important;
-    }
+/* ----- Kolam / decorative gold divider ----- */
+.kolam-divider {
+    position: relative;
+    height: 22px;
+    background-image:
+        radial-gradient(circle at 6px 6px, var(--brand-secondary) 1.2px, transparent 1.5px),
+        radial-gradient(circle at 18px 6px, var(--brand-secondary) 1.2px, transparent 1.5px);
+    background-size: 24px 22px;
+    background-repeat: repeat-x;
+    background-position: center;
+    opacity: 0.72;
+}
+.kolam-divider::before,
+.kolam-divider::after {
+    content: "❋";
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--brand-secondary);
+    font-size: 14px;
+    background: var(--brand-cream);
+    padding: 0 10px;
+}
+.kolam-divider::before { left: calc(50% - 60px); }
+.kolam-divider::after  { left: calc(50% + 40px); }
 
-    [data-debug-wrapper="true"] > * {
-        margin-left: inherit;
-        margin-right: inherit;
-        margin-top: inherit;
-        margin-bottom: inherit;
-        padding-left: inherit;
-        padding-right: inherit;
-        padding-top: inherit;
-        padding-bottom: inherit;
-        column-gap: inherit;
-        row-gap: inherit;
-        gap: inherit;
-        border-left-width: inherit;
-        border-right-width: inherit;
-        border-top-width: inherit;
-        border-bottom-width: inherit;
-        border-left-style: inherit;
-        border-right-style: inherit;
-        border-top-style: inherit;
-        border-bottom-style: inherit;
-        border-left-color: inherit;
-        border-right-color: inherit;
-        border-top-color: inherit;
-        border-bottom-color: inherit;
-    }
+.gold-ornament {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--brand-secondary);
+    font-size: 14px;
+}
+.gold-ornament::before,
+.gold-ornament::after {
+    content: "";
+    display: inline-block;
+    width: 42px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--brand-secondary), transparent);
+}
+
+/* ----- Buttons ----- */
+.btn-primary {
+    background: var(--brand-accent);
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 14px 22px;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px -6px rgba(217, 63, 63, 0.55);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.btn-primary:hover:not(:disabled) {
+    background: var(--brand-accent-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -8px rgba(178, 34, 34, 0.6);
+}
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.btn-secondary {
+    background: var(--brand-primary);
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 12px 22px;
+    border-radius: 10px;
+    border: 1.5px solid var(--brand-secondary);
+    transition: all 0.2s ease;
+    display: inline-flex; align-items: center; gap: 10px;
+}
+.btn-secondary:hover { background: var(--brand-primary-dark); }
+
+.btn-ghost {
+    background: var(--brand-surface);
+    color: var(--brand-primary);
+    border: 1.5px solid var(--brand-primary);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* ----- Product cards ----- */
+.product-card {
+    background: var(--brand-surface);
+    border: 1.5px solid var(--brand-border);
+    border-radius: 20px;
+    padding: 24px 20px 20px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -20px rgba(23, 76, 43, 0.25);
+    border-color: var(--brand-secondary);
+}
+.pack-badge {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    background: var(--brand-accent);
+    color: white;
+    border-radius: 9999px;
+    padding: 8px 14px;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1.15;
+    min-width: 54px;
+    text-align: center;
+    box-shadow: 0 6px 16px -6px rgba(217, 63, 63, 0.6);
+    white-space: nowrap;
+}
+.pack-badge.blue { background: #2d6cdf; box-shadow: 0 6px 16px -6px rgba(45, 108, 223, 0.6); }
+.bestseller-ribbon {
+    position: absolute;
+    top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--brand-accent);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    box-shadow: 0 8px 20px -6px rgba(217, 63, 63, 0.55);
+    display: inline-flex; align-items: center; gap: 6px;
+}
+
+/* ----- Hero carousel ----- */
+.hero-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+}
+.hero-cta-hotspot {
+    position: absolute;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+.hero-cta-hotspot:focus-visible {
+    outline: 3px solid var(--brand-secondary);
+    outline-offset: 2px;
+    border-radius: 10px;
+}
+
+/* ----- Utility ----- */
+.container-brand { max-width: 1280px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+@media (min-width: 1024px) {
+    .container-brand { padding-left: 32px; padding-right: 32px; }
+}
+
+.heading-eyebrow {
+    font-family: "Lora", serif;
+    font-style: italic;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    color: var(--brand-secondary);
+    text-transform: none;
+}
+
+/* Fade-slide entrance */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.6s ease both; }
+
+/* Carousel slide transition */
+.slide-enter { opacity: 0; }
+.slide-enter-active { opacity: 1; transition: opacity 700ms ease; }
+.slide-exit { opacity: 1; }
+.slide-exit-active { opacity: 0; transition: opacity 700ms ease; }
+
+/* Placeholder bottle image (black bg) — blend black to background */
+.bottle-img {
+    mix-blend-mode: multiply;
+    filter: contrast(1.02);
+}
+
+/* Number-only input styling for OTP */
+input[type="tel"], input.no-spin { -moz-appearance: textfield; }
+input.no-spin::-webkit-outer-spin-button,
+input.no-spin::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Focus visible for accessibility */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--brand-secondary);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* Prevent horizontal scroll */
+html, body { overflow-x: hidden; }
+
+/* Serif italic tagline (mimics reference "We are for you") */
+.tagline-italic {
+    font-family: "Cormorant Garamond", "Playfair Display", serif;
+    font-style: italic;
+    font-weight: 600;
+    color: var(--brand-accent);
+}
+
+/* Red kolam bottom bar (footer copyright) */
+.copyright-bar {
+    background: var(--brand-accent);
+    color: #FFF3E0;
 }

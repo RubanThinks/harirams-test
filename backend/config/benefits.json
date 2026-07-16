@@ -1,0 +1,9 @@
+{
+  "benefits": [
+    { "id": "digest",   "title": "Easy to Digest & Absorb", "icon": "stomach" },
+    { "id": "immunity", "title": "Boosts Immunity",         "icon": "shield" },
+    { "id": "tummies",  "title": "For Little Tummies",      "icon": "droplet" },
+    { "id": "bones",    "title": "For Healthy Bones",       "icon": "bone" },
+    { "id": "skin",     "title": "For Radiant Skin",        "icon": "sparkles" }
+  ]
+}
