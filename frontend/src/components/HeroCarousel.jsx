@@ -67,7 +67,7 @@ export default function HeroCarousel() {
               alt={b.alt}
               className="hero-image"
               loading={i === 0 ? "eager" : "lazy"}
-              fetchpriority={i === 0 ? "high" : "auto"}
+              fetchPriority={i === 0 ? "high" : "auto"}
             />
           </picture>
         ))}

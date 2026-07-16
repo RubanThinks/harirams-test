@@ -1,7 +1,7 @@
 import React from "react";
 import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartContext";
 import { formatINR } from "@/lib/format";
 import { TESTIDS } from "@/constants/testIds";
@@ -30,6 +30,9 @@ export default function CartDrawer() {
           >
             Your Cart
           </SheetTitle>
+          <SheetDescription className="sr-only">
+            Review the items in your cart and proceed to checkout.
+          </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
