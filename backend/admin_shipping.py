@@ -48,8 +48,10 @@ async def upload_rates(file: UploadFile = File(...), _: dict = Depends(require_a
         parsed = json.loads(content)
     except json.JSONDecodeError as e:
         raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
-    if "rules" not in parsed or "defaultCharge" not in parsed:
+    if not isinstance(parsed, dict) or "rules" not in parsed or "defaultCharge" not in parsed:
         raise HTTPException(status_code=400, detail="Missing required fields (rules, defaultCharge)")
+    if not isinstance(parsed.get("rules"), list):
+        raise HTTPException(status_code=400, detail="'rules' must be a list")
     with open(CONFIG_PATH, "wb") as f:
         f.write(content)
     return {"success": True}

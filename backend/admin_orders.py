@@ -56,6 +56,25 @@ def _sort_orders(orders: list[dict], sort: str, direction: str) -> list[dict]:
 
 def register(api: APIRouter, db):
 
+    async def _completed_orders(from_date, to_date):
+        # Default: last 30 days
+        now = datetime.now(timezone.utc)
+        to_dt = datetime.fromisoformat(to_date) if to_date else now
+        from_dt = datetime.fromisoformat(from_date) if from_date else (now - timedelta(days=30))
+
+        cursor = db.orders.find(
+            {"created_at": {"$gte": from_dt.isoformat(), "$lte": to_dt.isoformat()}},
+            {"_id": 0},
+        )
+        orders = [o async for o in cursor]
+        orders.sort(key=lambda o: o.get("created_at", ""), reverse=True)
+        return {
+            "count": len(orders),
+            "orders": orders,
+            "from": from_dt.isoformat(),
+            "to": to_dt.isoformat(),
+        }
+
     @router.get("/pending")
     async def list_pending(
         sort: str = Query("created_at"),
@@ -75,23 +94,7 @@ def register(api: APIRouter, db):
         to_date: Optional[str] = Query(None),
         _: dict = Depends(require_admin),
     ):
-        # Default: last 30 days
-        now = datetime.now(timezone.utc)
-        to_dt = datetime.fromisoformat(to_date) if to_date else now
-        from_dt = datetime.fromisoformat(from_date) if from_date else (now - timedelta(days=30))
-
-        cursor = db.orders.find(
-            {"created_at": {"$gte": from_dt.isoformat(), "$lte": to_dt.isoformat()}},
-            {"_id": 0},
-        )
-        orders = [o async for o in cursor]
-        orders.sort(key=lambda o: o.get("created_at", ""), reverse=True)
-        return {
-            "count": len(orders),
-            "orders": orders,
-            "from": from_dt.isoformat(),
-            "to": to_dt.isoformat(),
-        }
+        return await _completed_orders(from_date, to_date)
 
     @router.post("/mark-shipped")
     async def mark_shipped(req: MarkShippedRequest, admin=Depends(require_admin)):
@@ -181,7 +184,7 @@ def register(api: APIRouter, db):
         to_date: Optional[str] = Query(None),
         _: dict = Depends(require_admin),
     ):
-        orders = (await list_completed(from_date, to_date, {"sub": "admin"}))["orders"]  # reuse
+        orders = (await _completed_orders(from_date, to_date))["orders"]
 
         wb = Workbook()
         ws = wb.active
@@ -244,7 +247,7 @@ def register(api: APIRouter, db):
         to_date: Optional[str] = Query(None),
         _: dict = Depends(require_admin),
     ):
-        orders = (await list_completed(from_date, to_date, {"sub": "admin"}))["orders"]  # reuse
+        orders = (await _completed_orders(from_date, to_date))["orders"]
         pdf = build_pending_orders_pdf(orders)  # same tabular layout
         return StreamingResponse(
             io.BytesIO(pdf),

@@ -387,9 +387,8 @@ async def root():
     return {"status": "ok", "brand": "Hariram's Pure Cow Ghee", "version": "1.0.0"}
 
 
-app.include_router(api)
-
-# Admin routes (auth, product catalog, shipping rates, order book)
+# Admin routes (auth, product catalog, shipping rates, order book) —
+# must be registered on `api` BEFORE app.include_router(api) so they get mounted.
 from admin_auth import register as _reg_admin_auth
 from admin_products import register as _reg_admin_products
 from admin_shipping import register as _reg_admin_shipping
@@ -400,7 +399,6 @@ _reg_admin_products(api)
 _reg_admin_shipping(api)
 _reg_admin_orders(api, db)
 
-# Re-mount so admin routes are exposed
 app.include_router(api)
 
 # Serve uploaded product images (and any future admin uploads)

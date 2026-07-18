@@ -26,6 +26,21 @@ Build a production-ready ecommerce website for Hariram's Pure Cow Ghee — follo
 - `seo.json`, `site_config.json`, `faq.json`, `features.json`, `legal.json`, `testimonials.json`
 
 ## What's implemented (2026-02)
+- Sticky Header, rotating Hero, Benefits Strip, dynamic Product Grid, Cart Drawer, multi-step Checkout, Order Confirmation, Footer, Newsletter
+- Search page + Account (phone-OTP login) with profile + order history
+- Notification stub (SMS + WhatsApp) — logs, receipts on order response
+
+## Admin Console (2026-02, Phase 3)
+- **Auth**: username `admin` + bcrypt-hashed password in `.env` + JWT (8 h) + brute-force lock (5 attempts / 15 min per ip+username). Endpoints: `POST /api/admin/auth/login`, `GET /api/admin/auth/me`
+- **Products** (`/admin/products`): full CRUD editing `products.json`, image upload to `/app/backend/uploads/products/*` (5 MB cap, served via `/api/uploads/`)
+- **Shipping rates** (`/admin/shipping`): live JSON editor with inline validation + Download / Upload of `shipping_rates.json`
+- **Pending orders** (`/admin/orders/pending`): sortable by Order Date / City / Total Items / Total Price / Order # (asc/desc). Checkbox multi-select → bulk Mark Shipped, bulk Print Addresses (PDF, solid separator + spacing between labels), single-order address slip, single-order Send Invoice (PDF + queued mock dispatch log). "Print All Pending" → PDF table.
+- **Completed orders** (`/admin/orders/completed`): from/to date pickers (default last 30 days), summary stats (orders / revenue / shipping), export to Excel + PDF
+- **Backend module layout**: `admin_auth.py`, `admin_products.py`, `admin_shipping.py`, `admin_orders.py`, `admin_pdf.py` (reportlab)
+- **Tests**: 63/63 passing (36 storefront + 27 admin) — verified by testing agent
+- **PDF/XLSX**: reportlab for PDFs, openpyxl for Excel
+
+## What's implemented earlier
 - Sticky Header (logo, brand, italic tagline, kolam gold divider, nav, cart badge, mobile hamburger)
 - Rotating Hero carousel — uses supplied artwork verbatim, accessible transparent CTA hotspot + mobile-visible CTA button below image, dots + prev/next
 - Benefits Strip — 5 lucide icons + config-driven titles
