@@ -1,0 +1,110 @@
+/* Admin UI — minimal, functional, high-density */
+.admin-shell {
+    min-height: 100vh;
+    background: #F6F4EE;
+    color: #1F2A24;
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+}
+.admin-shell h1, .admin-shell h2, .admin-shell h3, .admin-shell h4 {
+    font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+    color: #174C2B;
+    font-weight: 700;
+}
+.admin-navbar {
+    background: #174C2B;
+    color: #FFFDF7;
+    border-bottom: 3px solid #D89B22;
+    position: sticky; top: 0; z-index: 30;
+}
+.admin-navbar a { color: #FFFDF7; }
+.admin-nav-link {
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: background 0.15s;
+    display: inline-flex; align-items: center; gap: 8px;
+}
+.admin-nav-link:hover { background: rgba(255,255,255,0.08); }
+.admin-nav-link.active { background: #D89B22; color: #174C2B; }
+
+.admin-card {
+    background: white;
+    border: 1px solid #E4DEC9;
+    border-radius: 12px;
+    padding: 20px;
+}
+.admin-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+}
+.admin-table th {
+    text-align: left;
+    padding: 10px 12px;
+    background: #174C2B;
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-size: 11px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+}
+.admin-table th:first-child { border-top-left-radius: 8px; }
+.admin-table th:last-child { border-top-right-radius: 8px; border-right: 0; }
+.admin-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #F0EAD8;
+    vertical-align: top;
+}
+.admin-table tbody tr:hover { background: #FFFDF3; }
+.admin-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+    cursor: pointer;
+    font-size: 13px;
+}
+.admin-btn-primary { background: #174C2B; color: white; }
+.admin-btn-primary:hover:not(:disabled) { background: #0F3620; }
+.admin-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-btn-accent { background: #D89B22; color: #1F2A24; }
+.admin-btn-accent:hover { background: #B77F14; }
+.admin-btn-danger { background: white; color: #B22222; border-color: #B22222; }
+.admin-btn-danger:hover { background: #B22222; color: white; }
+.admin-btn-ghost { background: white; color: #174C2B; border-color: #D8D0BE; }
+.admin-btn-ghost:hover { background: #F6F4EE; }
+.admin-btn-sm { padding: 5px 10px; font-size: 12px; }
+.admin-input, .admin-select, .admin-textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #D8D0BE;
+    background: white;
+    outline: none;
+    font-size: 13px;
+    transition: border-color 0.15s;
+    font-family: inherit;
+}
+.admin-input:focus, .admin-select:focus, .admin-textarea:focus {
+    border-color: #174C2B;
+    box-shadow: 0 0 0 3px rgba(23,76,43,0.10);
+}
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.badge-paid { background: rgba(23,76,43,0.1); color: #174C2B; }
+.badge-shipped { background: rgba(216,155,34,0.15); color: #8A620F; }
+.badge-pending { background: rgba(178,34,34,0.1); color: #B22222; }

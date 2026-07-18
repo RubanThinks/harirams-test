@@ -5,6 +5,7 @@ All business content is config-driven from /app/backend/config/*.json
 """
 from fastapi import FastAPI, APIRouter, HTTPException, Query
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -387,6 +388,26 @@ async def root():
 
 
 app.include_router(api)
+
+# Admin routes (auth, product catalog, shipping rates, order book)
+from admin_auth import register as _reg_admin_auth
+from admin_products import register as _reg_admin_products
+from admin_shipping import register as _reg_admin_shipping
+from admin_orders import register as _reg_admin_orders
+
+_reg_admin_auth(api, db)
+_reg_admin_products(api)
+_reg_admin_shipping(api)
+_reg_admin_orders(api, db)
+
+# Re-mount so admin routes are exposed
+app.include_router(api)
+
+# Serve uploaded product images (and any future admin uploads)
+UPLOAD_ROOT = ROOT_DIR / "uploads"
+UPLOAD_ROOT.mkdir(exist_ok=True)
+(UPLOAD_ROOT / "products").mkdir(exist_ok=True)
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_ROOT)), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,

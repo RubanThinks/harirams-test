@@ -1,0 +1,57 @@
+{
+  "summary": "Phase 3 Admin Console — full backend + frontend E2E. 27/27 new admin backend tests PASS + 36/36 regression from iteration_2 PASS (63/63 total). Frontend admin console verified end-to-end: login (with wrong-pw error), JWT stored in localStorage 'hariram_admin_token', dashboard stats, products table (4 rows), shipping JSON editor with inline invalid-JSON error, pending orders (22 rows, sort field + direction toggle, per-row Invoice button triggers POST /send-invoice -> 200), completed orders default date range (today-30d -> today), unauth /admin redirects to /admin/login.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_admin_api.py",
+    "/app/backend/tests/test_hariram_api.py",
+    "/app/test_reports/pytest/admin_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "admin_orders.export_completed_xlsx and export_completed_pdf call list_completed(..., {'sub':'admin'}) — passing a fake admin dict bypasses the Depends chain. Works because require_admin is only enforced on the outer route, but the pattern is fragile: if list_completed later gains admin-scoped logic (e.g., filter by admin), this shortcut will silently misbehave. Consider refactoring the shared query into a helper function that doesn't take the admin arg at all.",
+    "admin_shipping.upload validates only presence of 'rules' and 'defaultCharge'; doesn't validate rules is a list (unlike PUT). Small inconsistency.",
+    "admin_products.upload_image reads full file into memory then checks size — a 100MB upload would still buffer entirely before rejection. For a small-scale admin this is fine, but consider streaming/max_upload_size at the ASGI layer for hardening.",
+    "server.py mounts /api/uploads AFTER app.include_router(api) is called twice — works, but the double include_router (line 390 and 404) is redundant. FastAPI dedups but it is a code smell.",
+    "AdminShippingPage inline error div uses inline style, no .error class. Not a bug — but adding class='admin-error' would help testing/observability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_admin_api.py (new — 27 tests covering auth, products CRUD + image, shipping CRUD + download + upload, pending sort + mark-shipped, print-address + print-pending PDFs, send-invoice + dispatch log + invoice.pdf, completed list + XLSX + PDF exports)"
+  ],
+  "success_rate": {
+    "backend": "100% (27/27 admin + 36/36 regression = 63/63)",
+    "frontend": "100% (all 6 admin pages + auth-gate verified)"
+  },
+  "test_credentials": "admin / Harirams0507 (from backend/.env). Customer OTP fixed 123456. Cleared db.admin_login_attempts before + after lockout test.",
+  "seed_data_creation": "Seeded 2 CONFIRMED orders via public storefront flow (phones 9812340001 Chennai, 9812340002 Bengaluru) inside the pytest session fixture. One is later marked SHIPPED by test_mark_shipped_bulk so it moves to Completed. Test product 'TESTSKU_ADMIN_01' created & deleted in the same test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Admin login endpoint is /api/admin/auth/login; all /api/admin/* require Authorization: Bearer <token>. Brute-force uses ip:username identifier — remember to db.admin_login_attempts.delete_many({}) before + after any negative-auth test batch. Shipping-rates PUT persists; the admin shipping test restores the original config at the end but if a run is interrupted mid-test the defaultCharge could remain at 77 with empty rules — check /api/admin/shipping-rates first if odd shipping charges appear. Invoice PDFs are stored at /app/backend/uploads/invoices/<HRnum>.pdf and a dispatch log record is inserted into db.invoice_dispatch_log (channel=WHATSAPP provider=MOCK status=QUEUED). Frontend testids are all documented in /app/frontend/src/constants/adminTestIds.js — every admin interaction has one. Products page + Shipping editor take ~1.5-2s to hydrate from API after nav-click; wait_for_timeout(2000) is reliable.",
+  "verification_evidence": {
+    "admin_backend_pytest": "27 passed in 6.66s",
+    "regression_pytest": "36 passed in 3.47s",
+    "wrong_pw_error_msg": "Invalid username or password",
+    "jwt_localstorage_len": 188,
+    "products_rows_rendered": 4,
+    "shipping_editor_chars": 409,
+    "pending_rows_rendered": 22,
+    "send_invoice_status": 200,
+    "completed_default_dates": "from=2026-06-18 to=2026-07-18",
+    "unauth_admin_redirect": "confirmed to /admin/login",
+    "invalid_json_inline_error": "Invalid JSON: Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+    "brute_force_429_after_5_fails": true,
+    "image_upload_413_over_5MB": true,
+    "duplicate_sku_409": true,
+    "print_addresses_pdf_magic": "%PDF",
+    "print_pending_pdf_magic": "%PDF",
+    "completed_xlsx_magic": "PK\\x03\\x04",
+    "invoice_dispatch_log_record": "channel=WHATSAPP provider=MOCK status=QUEUED"
+  }
+}
