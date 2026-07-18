@@ -72,4 +72,23 @@ export const TESTIDS = {
   footer: "site-footer",
   newsletterEmail: "newsletter-email",
   newsletterSubmit: "newsletter-submit",
+
+  // Search page
+  searchPage: "search-page",
+  searchInput: "search-input",
+  searchResult: (sku) => `search-result-${sku}`,
+  searchEmpty: "search-empty",
+
+  // Account
+  accountLoginPage: "account-login-page",
+  accountLoginPhone: "account-login-phone",
+  accountLoginSendOtp: "account-login-send-otp",
+  accountLoginOtp: "account-login-otp",
+  accountLoginVerify: "account-login-verify",
+  accountPage: "account-page",
+  accountLogout: "account-logout",
+  accountProfile: "account-profile",
+  accountOrders: "account-orders",
+  accountOrder: (n) => `account-order-${n}`,
+  accountOrderView: (n) => `account-order-view-${n}`,
 };

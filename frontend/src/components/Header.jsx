@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, User, ShoppingCart, Menu, X } from "lucide-react";
 import { useConfig } from "@/hooks/useConfig";
 import { useCart } from "@/context/CartContext";
+import { useAccount } from "@/context/AccountContext";
 import { TESTIDS } from "@/constants/testIds";
 
 export default function Header() {
   const { data: company } = useConfig("company");
   const { data: nav } = useConfig("navigation");
   const { count, setOpen } = useCart();
+  const { isAuthed } = useAccount();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
@@ -87,15 +89,17 @@ export default function Header() {
         <div className="flex items-center gap-3 lg:gap-5 ml-auto">
           <button
             data-testid={TESTIDS.headerSearch}
+            onClick={() => navigate("/search")}
             className="hidden sm:inline-flex p-2 rounded-full hover:bg-[color:var(--brand-border)]/50 transition"
-            aria-label="Search"
+            aria-label="Search products"
           >
             <Search className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
           </button>
           <button
             data-testid={TESTIDS.headerAccount}
+            onClick={() => navigate(isAuthed ? "/account" : "/account/login")}
             className="hidden sm:inline-flex p-2 rounded-full hover:bg-[color:var(--brand-border)]/50 transition"
-            aria-label="Account"
+            aria-label={isAuthed ? "My Account" : "Sign in"}
           >
             <User className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
           </button>

@@ -220,6 +220,99 @@ def test_last_address_and_order_flow(s):
     assert d["address"]["pincode"] == "600001"
 
 
+# --- Notification receipts on order creation ---
+def test_order_response_has_notification_receipts(s):
+    phone = _rand_phone()
+    s.post(f"{API}/auth/send-otp", json={"phone": phone})
+    s.post(f"{API}/auth/verify-otp", json={"phone": phone, "otp": "123456"})
+    payload = {
+        "phone": phone,
+        "address": {"name": "Notify Test", "line1": "1 Test Rd", "line2": "", "landmark": "",
+                    "city": "Chennai", "state": "Tamil Nadu", "pincode": "600001"},
+        "items": [{"sku": "HG500", "name": "Pure Cow Ghee", "variant": "500 ml",
+                   "price": 399, "quantity": 1, "image": "/x.png"}],
+        "subtotal": 399, "shipping": 40, "total": 439, "paymentMethod": "UPI",
+    }
+    r = s.post(f"{API}/orders", json=payload)
+    assert r.status_code == 200, r.text
+    order = r.json()["order"]
+    receipts = order.get("notificationReceipts")
+    assert receipts is not None, "notificationReceipts missing on order response"
+    assert receipts["sms"]["mock"] is True
+    assert receipts["sms"]["delivered"] is True
+    assert receipts["whatsapp"]["mock"] is True
+    assert receipts["whatsapp"]["delivered"] is True
+
+
+# --- Customer profile & order history endpoints ---
+def _seed_verified_order(s, phone=None):
+    phone = phone or _rand_phone()
+    s.post(f"{API}/auth/send-otp", json={"phone": phone})
+    s.post(f"{API}/auth/verify-otp", json={"phone": phone, "otp": "123456"})
+    payload = {
+        "phone": phone,
+        "address": {"name": "TEST User", "line1": "5 Marina Rd", "line2": "Apt 3", "landmark": "Beach",
+                    "city": "Chennai", "state": "Tamil Nadu", "pincode": "600001"},
+        "items": [{"sku": "HG500", "name": "Pure Cow Ghee", "variant": "500 ml",
+                   "price": 399, "quantity": 2, "image": "/x.png"}],
+        "subtotal": 798, "shipping": 40, "total": 838, "paymentMethod": "UPI",
+    }
+    r = s.post(f"{API}/orders", json=payload)
+    assert r.status_code == 200, r.text
+    return phone, r.json()["order"]
+
+
+def test_customer_profile_unverified_returns_401(s):
+    phone = _rand_phone()
+    r = s.get(f"{API}/customers/{phone}/profile")
+    assert r.status_code == 401
+
+
+def test_customer_profile_verified_returns_200(s):
+    phone, order = _seed_verified_order(s)
+    r = s.get(f"{API}/customers/{phone}/profile")
+    assert r.status_code == 200
+    d = r.json()
+    assert d["phone"] == phone
+    assert d["name"] == "TEST User"
+    assert d["address"]["pincode"] == "600001"
+    assert d["totalOrders"] >= 1
+    assert d["totalSpent"] >= 838
+    assert d["lastOrderNumber"] == order["orderNumber"]
+
+
+def test_customer_orders_unverified_returns_401(s):
+    phone = _rand_phone()
+    r = s.get(f"{API}/customers/{phone}/orders")
+    assert r.status_code == 401
+
+
+def test_customer_orders_verified_returns_list_desc(s):
+    phone, order1 = _seed_verified_order(s)
+    # place a second order for same phone
+    payload = {
+        "phone": phone,
+        "address": {"name": "TEST User", "line1": "5 Marina Rd", "line2": "", "landmark": "",
+                    "city": "Chennai", "state": "Tamil Nadu", "pincode": "600001"},
+        "items": [{"sku": "HG200", "name": "Pure Cow Ghee", "variant": "200 ml",
+                   "price": 199, "quantity": 1, "image": "/y.png"}],
+        "subtotal": 199, "shipping": 40, "total": 239, "paymentMethod": "COD",
+    }
+    r2 = s.post(f"{API}/orders", json=payload)
+    assert r2.status_code == 200
+    order2 = r2.json()["order"]
+
+    r = s.get(f"{API}/customers/{phone}/orders")
+    assert r.status_code == 200
+    d = r.json()
+    assert d["phone"] == phone
+    assert d["count"] >= 2
+    nums = [o["orderNumber"] for o in d["orders"]]
+    # newest first
+    assert nums[0] == order2["orderNumber"]
+    assert order1["orderNumber"] in nums
+
+
 # --- Newsletter ---
 def test_newsletter_valid(s):
     r = s.post(f"{API}/newsletter/subscribe",

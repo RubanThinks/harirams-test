@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowRight, ArrowLeft, CheckCircle2, Lock, ShieldCheck, Loader2, Phone } from "lucide-react";
@@ -41,6 +41,13 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("UPI");
   const [placing, setPlacing] = useState(false);
   const [prefilledFromLast, setPrefilledFromLast] = useState(false);
+  const nameInputRef = useRef(null);
+  const otpInputRef = useRef(null);
+
+  // FIX #1: Auto-focus first field (Full Name) when checkout mounts
+  useEffect(() => {
+    if (nameInputRef.current) nameInputRef.current.focus();
+  }, []);
 
   useEffect(() => {
     if (count === 0) {
@@ -48,6 +55,28 @@ export default function CheckoutPage() {
       navigate("/");
     }
   }, [count, navigate]);
+
+  // Shared shipping-calculator that accepts explicit args (used after prefill + on pincode blur)
+  const calculateShipping = async (pin, city, state) => {
+    if (!/^\d{6}$/.test(pin)) {
+      setPincodeError(pin?.length ? "Enter a valid 6-digit PIN code" : "");
+      setShipping({ charge: null, rule: null });
+      return;
+    }
+    setPincodeError("");
+    setPincodeBusy(true);
+    try {
+      const r = await apiClient.post("/shipping/calculate", {
+        pincode: pin, city, state, subtotal,
+      });
+      setShipping({ charge: r.data.charge, rule: r.data.rule });
+    } catch (err) {
+      setPincodeError(err.response?.data?.detail || "Could not calculate shipping");
+      setShipping({ charge: null, rule: null });
+    } finally {
+      setPincodeBusy(false);
+    }
+  };
 
   // Look up last-address on phone blur
   const handlePhoneBlur = async () => {
@@ -57,46 +86,31 @@ export default function CheckoutPage() {
       const r = await apiClient.get("/customers/last-address", { params: { phone } });
       if (r.data.found) {
         const a = r.data.address;
-        setAddress((cur) => ({
-          ...cur,
-          name: a.name || cur.name,
-          line1: a.line1 || cur.line1,
-          line2: a.line2 || cur.line2,
-          landmark: a.landmark || cur.landmark,
-          city: a.city || cur.city,
-          state: a.state || cur.state,
-          pincode: a.pincode || cur.pincode,
-        }));
+        const merged = {
+          ...address,
+          phone,
+          name: a.name || address.name,
+          line1: a.line1 || address.line1,
+          line2: a.line2 || address.line2,
+          landmark: a.landmark || address.landmark,
+          city: a.city || address.city,
+          state: a.state || address.state,
+          pincode: a.pincode || address.pincode,
+        };
+        setAddress(merged);
         setPrefilledFromLast(true);
         toast.success("Welcome back! We've pre-filled your last address — please verify.");
+        // FIX #2: Auto-calculate shipping so "Continue" activates immediately
+        if (/^\d{6}$/.test(merged.pincode)) {
+          calculateShipping(merged.pincode, merged.city, merged.state);
+        }
       }
     } catch (_) { /* ignore */ }
   };
 
   // Auto-calculate shipping when a valid pincode is entered
   const handlePincodeBlur = async () => {
-    const pin = address.pincode.trim();
-    if (!/^\d{6}$/.test(pin)) {
-      setPincodeError(pin.length ? "Enter a valid 6-digit PIN code" : "");
-      setShipping({ charge: null, rule: null });
-      return;
-    }
-    setPincodeError("");
-    setPincodeBusy(true);
-    try {
-      const r = await apiClient.post("/shipping/calculate", {
-        pincode: pin,
-        city: address.city,
-        state: address.state,
-        subtotal,
-      });
-      setShipping({ charge: r.data.charge, rule: r.data.rule });
-    } catch (err) {
-      setPincodeError(err.response?.data?.detail || "Could not calculate shipping");
-      setShipping({ charge: null, rule: null });
-    } finally {
-      setPincodeBusy(false);
-    }
+    await calculateShipping(address.pincode.trim(), address.city, address.state);
   };
 
   const canContinueAddress =
@@ -164,8 +178,17 @@ export default function CheckoutPage() {
         total,
         paymentMethod,
       });
+      // FIX #3: Toast with order number + item summary before navigating
+      const orderNo = r.data.order.orderNumber;
+      const itemsLine = items
+        .map((i) => `${i.name} ${i.variant} × ${i.quantity}`)
+        .join(", ");
+      toast.success(
+        `Order ${orderNo} placed successfully!`,
+        { description: itemsLine, duration: 6000 }
+      );
       clear();
-      navigate(`/order/${r.data.order.orderNumber}`, { state: { order: r.data.order } });
+      navigate(`/order/${orderNo}`, { state: { order: r.data.order } });
     } catch (err) {
       toast.error(err.response?.data?.detail || "Order could not be placed");
     } finally {
@@ -205,6 +228,7 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Full Name *" required>
                   <input data-testid={TESTIDS.addrName} className={inputCls}
+                         ref={nameInputRef}
                          value={address.name}
                          onChange={(e) => setAddress({ ...address, name: e.target.value })}
                          disabled={step !== "ADDRESS"} />

@@ -1,0 +1,50 @@
+{
+  "summary": "Iteration 2: validated Phase 2 fixes (checkout auto-focus, prefill enables Continue, order success toast, notification stub) and features (Search page, Account login + My Account). 36/36 backend tests pass (31 previous + 5 new for notificationReceipts, /customers/{phone}/profile, /customers/{phone}/orders). Frontend E2E covered all 6 review items — all critical passes. One minor UX bug: logout ends on /account/login instead of /.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "AccountPage / doLogout",
+        "issue": "After clicking data-testid=account-logout, the user lands on /account/login instead of /. Root cause: <Navigate to='/account/login' replace /> fires the moment logout() flips isAuthed to false and replaces history before the explicit navigate('/') in doLogout runs. Session is correctly cleared and toast 'Signed out' shows, but the spec requires redirect to /. Fix: navigate('/', { replace: true }) BEFORE calling logout(), or guard the Navigate render to only apply when phone was never set (e.g., an initial-mount ref).",
+        "selector": "[data-testid=account-logout]",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_hariram_api.py",
+    "/app/test_reports/pytest/results.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: Fix logout redirect so /account/logout returns user to / instead of /account/login (race between <Navigate> and navigate('/'))."
+  ],
+  "critical_code_review_comments": [
+    "AccountPage useEffect: if 401 comes back, it does logout() + navigate('/account/login') INSIDE .catch — fine, but combined with the top-of-render <Navigate to='/account/login' /> it can cause double-navigation. Consider consolidating.",
+    "notifications.py send_order_confirmation swallows exceptions per channel — good. Consider adding a message-id/uuid per receipt for future dedup when a real provider is wired in.",
+    "AccountContext stores raw phone in localStorage — acceptable for Phase 1 (no PII beyond phone), but note that backend re-checks otp_requests.verified on every profile/orders fetch so client-side tampering only allows access to phones that were previously OTP-verified in this DB. This is the correct trust boundary."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_hariram_api.py (added 5 tests: notification receipts, customer profile 401+200, customer orders 401+200 with desc sort)"
+  ],
+  "success_rate": {"backend": "100% (36/36)", "frontend": "~95% (all 6 review items pass; logout redirect minor)"},
+  "test_credentials": "OTP fixed 123456 (mocked). Any 10-digit Indian phone. Seeded prior order for 9876500123 in DB during test run.",
+  "seed_data_creation": "Created a verified order for phone 9876500123 (address: 12 Marina Ave, Chennai 600001) so FIX #2 prefill flow can be exercised. Additional random-phone test users seeded by pytest cases.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend contract for account section: /api/customers/{phone}/profile and /orders both require prior otp_requests.verified=true for that phone — verified via test_customer_profile/orders_unverified_returns_401. Order response now includes notificationReceipts.{sms,whatsapp}.{mock,delivered,provider}. Frontend routes /search, /account/login, /account are new. Prefill on /checkout works via /customers/last-address (unauthenticated GET). FIX #2 verified visually: phone blur -> auto-fills name/pincode -> calls /shipping/calculate -> Continue button becomes enabled with shipping='₹40' before user touches anything.",
+  "verification_evidence": {
+    "backend_tests": "36 passed in 4.42s",
+    "MOCK-SMS_log_present": true,
+    "MOCK-WHATSAPP_log_present": true,
+    "FIX1_autofocus": "document.activeElement testid = addr-name",
+    "FIX2_prefill_continue": "name='Repeat Cust', pin='600001', shipping='₹40', continue disabled=None (button enabled immediately)",
+    "FIX3_toast": "HR-number HR2607185462 rendered and 'Pure Cow Ghee' present in toast body; redirect to /order/HR* URL confirmed on retest",
+    "FEATURE5_search": "4 default products; '500' -> HG500 present; 'bulk' -> HG5000 present; 'zzzzz' -> search-empty rendered; Add on HG500 increments cart count to 1",
+    "FEATURE6_account": "header-account -> /account/login when signed out; OTP verify -> /account; account-profile + account-orders rendered; 2 order links found; account-order-view-HR2607185462 -> /order/HR2607185462 navigation works; logout clears session (but lands on /account/login instead of /)"
+  }
+}

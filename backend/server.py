@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Any
 import uuid
 from datetime import datetime, timezone
+from notifications import send_order_confirmation
 
 ROOT_DIR = Path(__file__).parent
 CONFIG_DIR = ROOT_DIR / "config"
@@ -210,6 +211,49 @@ async def get_last_address(phone: str = Query(...)):
     }
 
 
+@api.get("/customers/{phone}/profile")
+async def get_customer_profile(phone: str):
+    """Return the customer's most-recent snapshot (name + address + counts).
+    Available only after phone was OTP-verified."""
+    p = _norm_phone(phone)
+    otp_rec = await db.otp_requests.find_one({"phone": p}, {"_id": 0})
+    if not otp_rec or not otp_rec.get("verified"):
+        raise HTTPException(status_code=401, detail="Phone not verified. Please log in.")
+
+    latest = await db.orders.find_one({"phone": p}, {"_id": 0}, sort=[("created_at", -1)])
+    total_orders = await db.orders.count_documents({"phone": p})
+    total_spent_cur = db.orders.aggregate([
+        {"$match": {"phone": p}},
+        {"$group": {"_id": None, "sum": {"$sum": "$total"}}},
+    ])
+    total_spent = 0
+    async for row in total_spent_cur:
+        total_spent = row.get("sum", 0)
+
+    return {
+        "phone": p,
+        "name": latest.get("name") if latest else None,
+        "address": latest.get("address") if latest else None,
+        "email": latest.get("email") if latest else None,
+        "totalOrders": total_orders,
+        "totalSpent": total_spent,
+        "lastOrderNumber": latest.get("orderNumber") if latest else None,
+    }
+
+
+@api.get("/customers/{phone}/orders")
+async def get_customer_orders(phone: str, limit: int = 50):
+    """Order history for a phone — requires prior OTP verification."""
+    p = _norm_phone(phone)
+    otp_rec = await db.otp_requests.find_one({"phone": p}, {"_id": 0})
+    if not otp_rec or not otp_rec.get("verified"):
+        raise HTTPException(status_code=401, detail="Phone not verified. Please log in.")
+
+    cursor = db.orders.find({"phone": p}, {"_id": 0}).sort("created_at", -1).limit(int(limit))
+    orders = [o async for o in cursor]
+    return {"phone": p, "count": len(orders), "orders": orders}
+
+
 # ---------------------------------------------------------------------------
 # Orders
 # ---------------------------------------------------------------------------
@@ -295,6 +339,11 @@ async def create_order(req: CreateOrderRequest):
         created_at=datetime.now(timezone.utc).isoformat(),
     )
     doc = json.loads(order.model_dump_json())
+
+    # Send order-confirmation via SMS + WhatsApp (mocked in Phase 1 — logs only)
+    receipts = send_order_confirmation(doc)
+    doc["notificationReceipts"] = receipts
+
     await db.orders.insert_one(dict(doc))  # insert copy so `doc` isn't mutated with _id
 
     log.info(f"[ORDER CREATED] {order.orderNumber} — ₹{order.total} — {phone}")
