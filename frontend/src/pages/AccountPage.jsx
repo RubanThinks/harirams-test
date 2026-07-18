@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LogOut, Package, User, MapPin, Phone as PhoneIcon, Loader2, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api";
@@ -13,7 +13,13 @@ export default function AccountPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [loggingOut, setLoggingOut] = useState(false);
   const navigate = useNavigate();
+
+  // Redirect to login if not authed (unless we're intentionally logging out and heading home)
+  useEffect(() => {
+    if (!isAuthed && !loggingOut) navigate("/account/login", { replace: true });
+  }, [isAuthed, loggingOut, navigate]);
 
   useEffect(() => {
     if (!phone) return;
@@ -29,25 +35,24 @@ export default function AccountPage() {
       })
       .catch((e) => {
         if (!alive) return;
-        // Session expired (OTP verification not recognised by backend)
         if (e.response?.status === 401) {
           logout();
-          navigate("/account/login");
           return;
         }
         setError(e.response?.data?.detail || "Could not load account");
       })
       .finally(() => alive && setLoading(false));
     return () => { alive = false; };
-  }, [phone, logout, navigate]);
-
-  if (!isAuthed) return <Navigate to="/account/login" replace />;
+  }, [phone, logout]);
 
   const doLogout = () => {
+    setLoggingOut(true);
     logout();
     toast.success("Signed out");
-    navigate("/");
+    navigate("/", { replace: true });
   };
+
+  if (!isAuthed) return null;
 
   return (
     <div data-testid={TESTIDS.accountPage} style={{ background: "var(--brand-cream)", minHeight: "100vh" }}>
