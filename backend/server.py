@@ -57,6 +57,42 @@ ALLOWED_CONFIGS = {
 }
 
 
+@api.get("/legal/manifest")
+async def legal_manifest():
+    with open(CONFIG_DIR / "legal" / "legal_manifest.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+@api.get("/legal/{doc_id}")
+async def legal_document(doc_id: str):
+    """Return a legal document's parsed JSON + raw markdown body."""
+    safe = re.sub(r"[^a-z0-9_]", "", doc_id.lower())
+    json_path = CONFIG_DIR / "legal" / f"{safe}.json"
+    md_path = CONFIG_DIR / "legal" / f"{safe}.md"
+    if not json_path.exists() and not md_path.exists():
+        raise HTTPException(status_code=404, detail="Legal document not found")
+    payload: dict = {}
+    if json_path.exists():
+        with open(json_path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+    # Inject manifest metadata for this doc
+    manifest_path = CONFIG_DIR / "legal" / "legal_manifest.json"
+    if manifest_path.exists():
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
+        for doc in manifest.get("documents", []):
+            if doc.get("id") == safe:
+                payload.setdefault("title", doc.get("title"))
+                payload.setdefault("version", doc.get("version"))
+                payload.setdefault("effectiveDate", doc.get("effectiveDate"))
+                payload.setdefault("lastUpdated", doc.get("lastUpdated"))
+                break
+    if md_path.exists():
+        with open(md_path, "r", encoding="utf-8") as f:
+            payload["markdown"] = f.read()
+    return payload
+
+
 @api.get("/config/{name}")
 async def get_config(name: str):
     if name not in ALLOWED_CONFIGS:
@@ -387,17 +423,19 @@ async def root():
     return {"status": "ok", "brand": "Hariram's Pure Cow Ghee", "version": "1.0.0"}
 
 
-# Admin routes (auth, product catalog, shipping rates, order book) —
+# Admin routes (auth, product catalog, shipping rates, order book, universal config editor) —
 # must be registered on `api` BEFORE app.include_router(api) so they get mounted.
 from admin_auth import register as _reg_admin_auth
 from admin_products import register as _reg_admin_products
 from admin_shipping import register as _reg_admin_shipping
 from admin_orders import register as _reg_admin_orders
+from admin_config import register as _reg_admin_config
 
 _reg_admin_auth(api, db)
 _reg_admin_products(api)
 _reg_admin_shipping(api)
 _reg_admin_orders(api, db)
+_reg_admin_config(api)
 
 app.include_router(api)
 

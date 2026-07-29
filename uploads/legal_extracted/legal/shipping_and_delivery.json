@@ -1,0 +1,117 @@
+{
+  "document": {
+    "id": "shipping_and_delivery",
+    "title": "Shipping & Delivery Policy",
+    "version": "1.0",
+    "effectiveDate": "DD-MMM-YYYY",
+    "lastUpdated": "DD-MMM-YYYY",
+    "language": "en-IN"
+  },
+  "serviceArea": {
+    "currentCoverage": "Tamil Nadu",
+    "country": "India",
+    "internationalShipping": false,
+    "futureExpansion": true
+  },
+  "orderProcessing": {
+    "paymentRequired": true,
+    "sameDayCutoff": "12:00",
+    "sameDayProcessing": "Orders placed before 12:00 PM on business days",
+    "nextBusinessDayProcessing": "Orders placed after 12:00 PM, on Sundays, or public holidays",
+    "notes": [
+      "Processing times may vary during festivals or promotional campaigns."
+    ]
+  },
+  "packaging": {
+    "features": [
+      "Secure packaging",
+      "Leakage protection",
+      "Food-grade hygiene",
+      "Transit protection"
+    ]
+  },
+  "deliveryTimeline": [
+    {
+      "region": "Chennai",
+      "estimatedBusinessDays": "1-2"
+    },
+    {
+      "region": "Other locations within Tamil Nadu",
+      "estimatedBusinessDays": "2-5"
+    }
+  ],
+  "shippingCharges": {
+    "calculation": "Calculated automatically during checkout based on delivery PIN code.",
+    "factors": [
+      "Delivery location",
+      "Shipping zone",
+      "Promotional offers",
+      "Free shipping campaigns"
+    ],
+    "configSource": "shipping_rates.json"
+  },
+  "tracking": {
+    "notifications": [
+      "Order Confirmation",
+      "Shipping Confirmation",
+      "Courier Partner Details",
+      "Tracking Number",
+      "Delivery Updates"
+    ],
+    "channels": [
+      "WhatsApp",
+      "SMS",
+      "Email"
+    ]
+  },
+  "deliveryAttempts": {
+    "multipleAttempts": true,
+    "failureReasons": [
+      "Customer unavailable",
+      "Incorrect address",
+      "Unreachable phone number"
+    ],
+    "redispatchChargesMayApply": true
+  },
+  "addressChanges": {
+    "allowedBeforeDispatch": true,
+    "allowedAfterDispatch": false
+  },
+  "damagedPackage": {
+    "reportWithinHours": 48,
+    "customerActions": [
+      "Take photographs of the package",
+      "Retain packaging materials",
+      "Contact customer support"
+    ],
+    "referencePolicy": "returns_refunds"
+  },
+  "deliveryDelays": {
+    "possibleReasons": [
+      "Heavy rainfall",
+      "Floods",
+      "Natural disasters",
+      "Festival rush",
+      "Government restrictions",
+      "Courier network delays"
+    ]
+  },
+  "deliveryFailure": {
+    "reasons": [
+      "Incorrect address",
+      "Incorrect PIN code",
+      "Customer unavailable",
+      "Restricted location"
+    ],
+    "redispatchChargesMayApply": true
+  },
+  "customerSupport": {
+    "company": "Hariram's Pure Cow Ghee",
+    "email": "care@hariramsghee.com",
+    "phone": "+91-XXXXXXXXXX",
+    "businessHours": {
+      "days": "Monday-Saturday",
+      "time": "09:00-18:00"
+    }
+  }
+}

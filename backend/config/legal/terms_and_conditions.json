@@ -1,0 +1,164 @@
+{
+  "document": {
+    "id": "terms_and_conditions",
+    "title": "Terms & Conditions",
+    "version": "1.0",
+    "effectiveDate": "DD-MMM-YYYY",
+    "lastUpdated": "DD-MMM-YYYY",
+    "language": "en-IN",
+    "website": "https://www.hariramsghee.com"
+  },
+  "sections": [
+    {
+      "id": 1,
+      "title": "Acceptance of Terms",
+      "content": [
+        "You must be at least 18 years old or use this website under the supervision of a parent or legal guardian.",
+        "By using this website, you agree to comply with these Terms & Conditions.",
+        "You also agree to our Privacy Policy and other policies published on this website."
+      ]
+    },
+    {
+      "id": 2,
+      "title": "About Our Products",
+      "content": [
+        "Hariram's manufactures traditional Pure Cow Ghee.",
+        "Product descriptions and images are intended to accurately represent the products.",
+        "Natural variations in colour, aroma, taste and texture may occur and do not indicate defects."
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Product Availability",
+      "content": [
+        "Products are subject to availability.",
+        "Hariram's reserves the right to discontinue products, revise pricing, modify packaging, update descriptions and limit purchase quantities without prior notice."
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Pricing",
+      "content": [
+        "All prices are displayed in Indian Rupees (₹).",
+        "GST applicability is shown on the product page.",
+        "Shipping charges are calculated during checkout.",
+        "Pricing errors due to technical issues may be corrected."
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Orders",
+      "content": [
+        "Orders are confirmed only after successful payment and order confirmation.",
+        "Orders may be cancelled due to pricing errors, failed payments, fraud detection, stock unavailability or non-serviceable locations.",
+        "Cancelled prepaid orders will be refunded."
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Payments",
+      "content": [
+        "Payments are processed through secure authorised payment gateways.",
+        "Hariram's does not store card, banking or UPI credentials.",
+        "Payment partners use industry-standard security."
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Shipping",
+      "content": [
+        "Shipping timelines are estimates.",
+        "Delays may occur because of weather, logistics, holidays, disasters or operational issues.",
+        "Hariram's is not responsible for delays beyond reasonable control."
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Delivery",
+      "content": [
+        "Customers must provide accurate address, PIN code and phone number.",
+        "Someone should be available to receive the shipment.",
+        "Additional shipping charges may apply if delivery fails due to customer-provided information."
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Returns & Refunds",
+      "content": [
+        "Food products are generally non-returnable for hygiene reasons.",
+        "Exceptions are governed by the Returns & Refund Policy."
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Product Usage",
+      "content": [
+        "Products are intended only for normal food consumption.",
+        "Customers are responsible for checking ingredients and consulting a doctor if necessary.",
+        "Hariram's is not responsible for misuse or improper storage."
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Intellectual Property",
+      "content": [
+        "All website content including logos, packaging, photographs, graphics, recipes, text and design belong to Hariram's.",
+        "No content may be copied or reproduced without written permission."
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Website Usage",
+      "content": [
+        "Users shall not misuse the website.",
+        "Unauthorized access, scraping, malware distribution or interference with operations is prohibited."
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Limitation of Liability",
+      "content": [
+        "Hariram's is not liable for indirect, incidental or consequential damages.",
+        "Total liability shall not exceed the purchase value of the affected product."
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Force Majeure",
+      "content": [
+        "Hariram's shall not be liable for delays due to natural disasters, pandemics, strikes, transportation disruptions or government restrictions."
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Governing Law",
+      "content": [
+        "These Terms are governed by the laws of India.",
+        "Jurisdiction shall lie with the competent courts where Hariram's operates."
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Changes to Terms",
+      "content": [
+        "Hariram's may revise these Terms at any time.",
+        "The latest version will always be available on this website.",
+        "Continued use constitutes acceptance of updated Terms."
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Contact",
+      "content": [
+        "Hariram's Pure Cow Ghee",
+        "Email: care@hariramsghee.com",
+        "Phone: +91-XXXXXXXXXX",
+        "Business Hours: Monday–Saturday, 9:00 AM–6:00 PM"
+      ]
+    }
+  ],
+  "footer": {
+    "copyright": "Copyright © Hariram's. All Rights Reserved.",
+    "version": "1.0"
+  }
+}

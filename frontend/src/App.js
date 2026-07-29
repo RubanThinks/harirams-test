@@ -23,6 +23,8 @@ import AdminProductsPage from "@/admin/AdminProductsPage";
 import AdminShippingPage from "@/admin/AdminShippingPage";
 import AdminPendingOrdersPage from "@/admin/AdminPendingOrdersPage";
 import AdminCompletedOrdersPage from "@/admin/AdminCompletedOrdersPage";
+import AdminConfigFilesPage from "@/admin/AdminConfigFilesPage";
+import LegalPage from "@/pages/LegalPage";
 
 import "@/App.css";
 
@@ -57,11 +59,20 @@ export default function App() {
               <Route path="/account/login" element={<StorefrontLayout><AccountLoginPage /></StorefrontLayout>} />
               <Route path="/account" element={<StorefrontLayout><AccountPage /></StorefrontLayout>} />
 
+              {/* Legal pages (backed by /api/legal/{id}) */}
+              <Route path="/terms-and-conditions" element={<StorefrontLayout><LegalPage /></StorefrontLayout>} />
+              <Route path="/privacy-policy" element={<StorefrontLayout><LegalPage /></StorefrontLayout>} />
+              <Route path="/returns-refunds" element={<StorefrontLayout><LegalPage /></StorefrontLayout>} />
+              <Route path="/shipping-delivery" element={<StorefrontLayout><LegalPage /></StorefrontLayout>} />
+              <Route path="/payment-policy" element={<StorefrontLayout><LegalPage /></StorefrontLayout>} />
+              <Route path="/legal/:slug" element={<StorefrontLayout><LegalPage /></StorefrontLayout>} />
+
               {/* Admin */}
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminChrome><AdminDashboardPage /></AdminChrome>} />
               <Route path="/admin/products" element={<AdminChrome><AdminProductsPage /></AdminChrome>} />
               <Route path="/admin/shipping" element={<AdminChrome><AdminShippingPage /></AdminChrome>} />
+              <Route path="/admin/config" element={<AdminChrome><AdminConfigFilesPage /></AdminChrome>} />
               <Route path="/admin/orders/pending" element={<AdminChrome><AdminPendingOrdersPage /></AdminChrome>} />
               <Route path="/admin/orders/completed" element={<AdminChrome><AdminCompletedOrdersPage /></AdminChrome>} />
             </Routes>

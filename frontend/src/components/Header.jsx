@@ -41,7 +41,7 @@ export default function Header() {
           aria-label={`${brandName} — Home`}
         >
           <img
-            src="/assets/logo/logo.jpeg"
+            src="/assets/logo/logo.webp"
             alt="Hariram's HHN Logo"
             className="h-12 w-16 lg:h-14 lg:w-20 object-contain rounded-lg"
           />
@@ -64,25 +64,49 @@ export default function Header() {
           className="hidden lg:flex items-center gap-7 mx-auto"
           aria-label="Primary"
         >
-          {items.map((item, i) => (
-            <a
-              key={item.title}
-              href={item.url}
-              data-testid={TESTIDS.headerNavItem(item.title.toLowerCase().replace(/\s+/g, "-"))}
-              className={`relative text-sm font-semibold tracking-wide uppercase transition-colors hover:text-[color:var(--brand-accent)] ${
-                i === 0 ? "text-[color:var(--brand-primary)]" : "text-[color:var(--brand-text)]"
-              }`}
-            >
-              {item.title}
-              {i === 0 && (
-                <span
-                  aria-hidden
-                  className="absolute -bottom-2 left-0 right-0 h-[3px] rounded-full"
-                  style={{ background: "var(--brand-secondary)" }}
-                />
-              )}
-            </a>
-          ))}
+          {items.map((item, i) => {
+            const isHash = item.url && item.url.includes("#");
+            const commonCls = `relative text-sm font-semibold tracking-wide uppercase transition-colors hover:text-[color:var(--brand-accent)] ${
+              i === 0 ? "text-[color:var(--brand-primary)]" : "text-[color:var(--brand-text)]"
+            }`;
+            const testid = TESTIDS.headerNavItem(item.title.toLowerCase().replace(/\s+/g, "-"));
+            if (isHash) {
+              const hash = item.url.split("#")[1];
+              return (
+                <a
+                  key={item.title}
+                  href={`/#${hash}`}
+                  data-testid={testid}
+                  onClick={(e) => {
+                    if (window.location.pathname === "/") {
+                      e.preventDefault();
+                      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                  }}
+                  className={commonCls}
+                >
+                  {item.title}
+                </a>
+              );
+            }
+            return (
+              <Link
+                key={item.title}
+                to={item.url}
+                data-testid={testid}
+                className={commonCls}
+              >
+                {item.title}
+                {i === 0 && (
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-2 left-0 right-0 h-[3px] rounded-full"
+                    style={{ background: "var(--brand-secondary)" }}
+                  />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Actions */}

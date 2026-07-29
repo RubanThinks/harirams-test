@@ -157,7 +157,7 @@
     background: var(--brand-surface);
     border: 1.5px solid var(--brand-border);
     border-radius: 20px;
-    padding: 24px 20px 20px;
+    padding: 18px 16px 16px;
     display: flex; flex-direction: column; align-items: center;
     text-align: center;
     position: relative;
@@ -246,6 +246,28 @@
 .slide-enter-active { opacity: 1; transition: opacity 700ms ease; }
 .slide-exit { opacity: 1; }
 .slide-exit-active { opacity: 0; transition: opacity 700ms ease; }
+
+/* Legal document typography */
+.legal-body h1, .legal-body h2, .legal-body h3, .legal-body h4 {
+    color: var(--brand-primary);
+    font-family: "Playfair Display", Georgia, serif;
+    line-height: 1.25;
+    margin: 1.5rem 0 0.75rem;
+}
+.legal-body h1 { font-size: 1.8rem; }
+.legal-body h2 { font-size: 1.4rem; }
+.legal-body h3 { font-size: 1.15rem; }
+.legal-body p, .legal-body li { color: var(--brand-text); font-size: 15px; line-height: 1.7; }
+.legal-body ul, .legal-body ol { margin: 0.5rem 0 1rem 1.25rem; }
+.legal-body ul { list-style: disc; }
+.legal-body ol { list-style: decimal; }
+.legal-body a { color: var(--brand-accent); text-decoration: underline; text-underline-offset: 3px; }
+.legal-body strong { color: var(--brand-primary); }
+.legal-body hr { border: 0; border-top: 1px solid var(--brand-border); margin: 1.5rem 0; }
+.legal-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+.legal-body th, .legal-body td { border: 1px solid var(--brand-border); padding: 6px 10px; text-align: left; }
+.legal-body th { background: var(--brand-cream); }
+.legal-body code { background: #F0EAD8; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
 
 /* Placeholder bottle image (black bg) — blend black to background */
 .bottle-img {

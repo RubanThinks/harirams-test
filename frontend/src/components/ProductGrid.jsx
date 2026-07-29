@@ -35,19 +35,19 @@ export default function ProductGrid() {
     <section
       id="products"
       data-testid={TESTIDS.productsSection}
-      className="w-full py-14 lg:py-20"
+      className="w-full py-8 lg:py-12 scroll-mt-24"
       style={{ background: "var(--brand-cream)" }}
       aria-label="Choose your pack"
     >
       <div className="container-brand">
-        <div className="text-center mb-10 lg:mb-14">
-          <div className="flex items-center justify-center mb-3">
+        <div className="text-center mb-6 lg:mb-8">
+          <div className="flex items-center justify-center mb-2">
             <span className="gold-ornament" />
           </div>
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl" style={{ color: "var(--brand-primary)" }}>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl" style={{ color: "var(--brand-primary)" }}>
             Choose Your Pack
           </h2>
-          <p className="mt-4 text-base lg:text-lg" style={{ color: "var(--brand-text)" }}>
+          <p className="mt-2 text-sm lg:text-base" style={{ color: "var(--brand-text)" }}>
             <span style={{ color: "var(--brand-secondary)" }}>❋</span> Freshly prepared
             &nbsp;•&nbsp; Pure Cow Ghee &nbsp;•&nbsp; Delivered with care{" "}
             <span style={{ color: "var(--brand-secondary)" }}>❋</span>
@@ -84,11 +84,11 @@ export default function ProductGrid() {
                   )}
                   <PackBadge variant={p.variant} index={i} />
 
-                  <div className="w-full flex-1 flex items-center justify-center py-4 lg:py-6">
+                  <div className="w-full flex-1 flex items-center justify-center py-3 lg:py-4">
                     <img
                       src={p.image}
                       alt={`${p.name} — ${p.variant} pack`}
-                      className="bottle-img w-40 lg:w-48 h-52 lg:h-64 object-contain drop-shadow-md"
+                      className="bottle-img w-32 lg:w-40 h-40 lg:h-52 object-contain drop-shadow-md"
                       loading="lazy"
                     />
                   </div>

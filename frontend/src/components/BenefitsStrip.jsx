@@ -18,7 +18,7 @@ export default function BenefitsStrip() {
   return (
     <section
       data-testid={TESTIDS.benefits}
-      className="w-full py-10 lg:py-14"
+      className="w-full py-6 lg:py-8"
       style={{ background: "var(--brand-cream)" }}
       aria-label="Product benefits"
     >
@@ -72,7 +72,7 @@ export default function BenefitsStrip() {
             {/* Cow & Calf illustration (from supplied benefits artwork, cropped visually) */}
             <div className="col-span-2 sm:col-span-3 lg:col-span-1 flex justify-center lg:justify-end">
               <img
-                src="/assets/ui/benefits.png"
+                src="/assets/ui/benefits.webp"
                 alt="Illustration of a mother cow with calf on a grassy patch with flowers"
                 className="h-24 lg:h-28 object-contain object-right"
                 style={{ clipPath: "inset(15% 0 15% 82%)", marginRight: "-70%" }}

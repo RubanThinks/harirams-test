@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { Instagram, Facebook, Youtube, Phone, Mail, Heart } from "lucide-react";
 import { useConfig } from "@/hooks/useConfig";
 import { apiClient } from "@/lib/api";
@@ -39,11 +40,11 @@ export default function Footer() {
 
   return (
     <footer data-testid={TESTIDS.footer} className="w-full" style={{ background: "var(--brand-cream)" }}>
-      <div className="container-brand py-14 lg:py-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
+      <div className="container-brand py-8 lg:py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6">
         {/* Brand column */}
         <div className="lg:col-span-1">
           <div className="flex items-center gap-3">
-            <img src="/assets/logo/logo.jpeg" alt="Hariram's HHN Logo" className="h-16 w-20 object-contain rounded-lg" />
+            <img src="/assets/logo/logo.webp" alt="Hariram's HHN Logo" className="h-16 w-20 object-contain rounded-lg" />
           </div>
           <div className="mt-4">
             <div className="text-2xl lg:text-3xl font-bold" style={{ color: "var(--brand-accent)", fontFamily: "'Playfair Display', serif" }}>
@@ -194,14 +195,31 @@ function FooterColumn({ title, links = [] }) {
       <h4 className="text-xl lg:text-2xl mb-1" style={{ color: "var(--brand-primary)" }}>{title}</h4>
       <span className="gold-ornament" />
       <ul className="mt-4 space-y-3">
-        {links.map((l) => (
-          <li key={l.label}>
-            <a href={l.url} className="text-sm lg:text-[15px] hover:text-[color:var(--brand-accent)] transition-colors"
-               style={{ color: "var(--brand-text)" }}>
-              {l.label}
-            </a>
-          </li>
-        ))}
+        {links.map((l) => {
+          const isExternal = /^https?:\/\//.test(l.url || "");
+          const cls = "text-sm lg:text-[15px] hover:text-[color:var(--brand-accent)] transition-colors";
+          if (isExternal) {
+            return (
+              <li key={l.label}>
+                <a href={l.url} target="_blank" rel="noopener noreferrer" className={cls}
+                   style={{ color: "var(--brand-text)" }}>{l.label}</a>
+              </li>
+            );
+          }
+          const isHash = (l.url || "").includes("#");
+          if (isHash) {
+            return (
+              <li key={l.label}>
+                <a href={l.url} className={cls} style={{ color: "var(--brand-text)" }}>{l.label}</a>
+              </li>
+            );
+          }
+          return (
+            <li key={l.label}>
+              <Link to={l.url} className={cls} style={{ color: "var(--brand-text)" }}>{l.label}</Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
     <div data-testid={ADMIN_TID.loginPage} className="admin-shell min-h-screen flex items-center justify-center py-10">
       <form onSubmit={submit} className="admin-card w-full max-w-md">
         <div className="text-center mb-6">
-          <img src="/assets/logo/logo.jpeg" alt="Hariram's" className="h-14 w-20 object-contain mx-auto mb-3 rounded" />
+          <img src="/assets/logo/logo.webp" alt="Hariram's" className="h-14 w-20 object-contain mx-auto mb-3 rounded" />
           <h1 className="text-2xl mb-1">Admin Sign In</h1>
           <p className="text-sm text-[color:#6B5A46]">Hariram&apos;s Pure Cow Ghee — Console</p>
         </div>

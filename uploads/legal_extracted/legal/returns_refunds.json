@@ -1,0 +1,94 @@
+{
+  "document": {
+    "id": "returns_refunds",
+    "title": "Returns & Refund Policy",
+    "version": "1.0",
+    "effectiveDate": "DD-MMM-YYYY",
+    "lastUpdated": "DD-MMM-YYYY",
+    "language": "en-IN"
+  },
+  "sections": [
+    {
+      "id": 1,
+      "title": "General Return Policy",
+      "content": [
+        "Hariram's Pure Cow Ghee products are not eligible for return after delivery.",
+        "Food products cannot be accepted back due to hygiene and food safety requirements.",
+        "Customers are requested to purchase carefully before placing an order."
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Damaged or Defective Products",
+      "content": [
+        "Customers may report damaged or defective products such as broken containers, leakage, broken safety seals, manufacturing defects, or incorrect products supplied."
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Reporting a Quality Concern",
+      "content": [
+        "Complaints should be reported within 48 hours of delivery.",
+        "Customers should provide the order number, contact details, photographs & videos of the product, packaging, batch number, manufacturing date, expiry date, and shipping box (if applicable), along with a description of the issue."
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Investigation Process",
+      "content": [
+        "Each complaint is investigated individually.",
+        "Hariram's may review photographs, verify batch records, inspect quality records, consult the quality team, coordinate with courier partners, request additional information, or arrange product collection for examination if required."
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Refund Eligibility",
+      "content": [
+        "Refunds are not automatic.",
+        "Refunds may be approved only when Hariram's confirms a manufacturing defect, transit damage attributable to Hariram's responsibility, or supply of an incorrect product.",
+        "The outcome will be based on the investigation and available evidence."
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Situations Where Refunds Will Not Be Approved",
+      "content": [
+        "Change of mind",
+        "Taste preference",
+        "Natural variations in colour, aroma or texture",
+        "Incorrect order placed by the customer",
+        "Incorrect delivery information provided by the customer",
+        "Complaints raised after the reporting period",
+        "Improper storage after delivery",
+        "Damage caused after delivery"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Refund Method",
+      "content": [
+        "Approved refunds will be processed to the original payment method.",
+        "Banks and payment providers may take 5–10 business days to complete the refund."
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Order Cancellation",
+      "content": [
+        "Orders may be cancelled before dispatch.",
+        "Orders cannot normally be cancelled after dispatch.",
+        "If Hariram's is unable to fulfil an order, a full refund will be issued."
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Contact Information",
+      "content": {
+        "company": "Hariram's Pure Cow Ghee",
+        "email": "care@hariramsghee.com",
+        "phone": "+91-XXXXXXXXXX",
+        "businessHours": "Monday–Saturday, 9:00 AM–6:00 PM"
+      }
+    }
+  ]
+}

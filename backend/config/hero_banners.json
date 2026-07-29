@@ -4,9 +4,9 @@
       "id": "mother_daughter",
       "enabled": true,
       "alt": "A mother lovingly feeding her daughter a spoon of Hariram's pure cow ghee served with rice",
-      "desktop": "/assets/hero/mother_daughter/desktop.png",
-      "tablet": "/assets/hero/mother_daughter/tablet.png",
-      "mobile": "/assets/hero/mother_daughter/mobile.png",
+      "desktop": "/assets/hero/mother_daughter/desktop.webp",
+      "tablet": "/assets/hero/mother_daughter/tablet.webp",
+      "mobile": "/assets/hero/mother_daughter/mobile.webp",
       "cta": "Shop Pure Ghee",
       "ctaHref": "#products"
     },
@@ -14,9 +14,9 @@
       "id": "temple",
       "enabled": true,
       "alt": "Hariram's Pure Cow Ghee placed at a South Indian temple courtyard with brass lamps and flowers",
-      "desktop": "/assets/hero/temple/desktop.png",
-      "tablet": "/assets/hero/temple/tablet.png",
-      "mobile": "/assets/hero/temple/mobile.png",
+      "desktop": "/assets/hero/temple/desktop.webp",
+      "tablet": "/assets/hero/temple/tablet.webp",
+      "mobile": "/assets/hero/temple/mobile.webp",
       "cta": "Shop Pure Ghee",
       "ctaHref": "#products"
     },
@@ -24,9 +24,9 @@
       "id": "joint_family",
       "enabled": true,
       "alt": "A joint South Indian family enjoying a traditional banana-leaf lunch with Hariram's ghee",
-      "desktop": "/assets/hero/joint_family/desktop.png",
-      "tablet": "/assets/hero/joint_family/tablet.png",
-      "mobile": "/assets/hero/joint_family/mobile.png",
+      "desktop": "/assets/hero/joint_family/desktop.webp",
+      "tablet": "/assets/hero/joint_family/tablet.webp",
+      "mobile": "/assets/hero/joint_family/mobile.webp",
       "cta": "Shop Pure Ghee",
       "ctaHref": "#products"
     }

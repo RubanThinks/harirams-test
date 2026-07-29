@@ -1,0 +1,179 @@
+{
+  "document": {
+    "title": "Privacy Policy",
+    "version": "1.0",
+    "effectiveDate": "DD-MMM-YYYY",
+    "lastUpdated": "DD-MMM-YYYY"
+  },
+  "sections": [
+    {
+      "id": 1,
+      "title": "Information We Collect",
+      "content": [
+        "Full Name",
+        "Mobile Number",
+        "Email Address",
+        "Shipping Address",
+        "Billing Address",
+        "Postal Code",
+        "State",
+        "Country",
+        "Products Ordered",
+        "Order Value",
+        "Payment Status",
+        "Delivery Preferences",
+        "IP Address",
+        "Browser Type",
+        "Device Information",
+        "Operating System",
+        "Language Preference",
+        "Website Usage Statistics",
+        "Customer Communications"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "How We Use Your Information",
+      "content": [
+        "Process Orders",
+        "Deliver Products",
+        "Process Payments",
+        "Customer Support",
+        "Shipping Notifications",
+        "Order Confirmation",
+        "Improve Website",
+        "Fraud Prevention",
+        "Legal Compliance",
+        "Marketing Communications (with consent)"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Payment Information",
+      "content": [
+        "Payments processed by certified payment gateways",
+        "No card information stored by Hariram's",
+        "No CVV stored",
+        "No UPI PIN stored",
+        "No Internet Banking credentials stored"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Cookies",
+      "content": [
+        "Remember preferences",
+        "Shopping cart session",
+        "Analytics",
+        "Performance improvements",
+        "Website functionality"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Sharing of Information",
+      "content": [
+        "Courier Partners",
+        "Payment Gateway Providers",
+        "Hosting Providers",
+        "Analytics Providers",
+        "Government Authorities where legally required",
+        "No sale of personal information"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Data Security",
+      "content": [
+        "SSL Encryption",
+        "Secure Servers",
+        "Access Controls",
+        "Password Protection",
+        "Security Updates"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Data Retention",
+      "content": [
+        "Order Processing",
+        "Customer Support",
+        "Accounting Requirements",
+        "Legal Compliance",
+        "Dispute Resolution",
+        "Secure Deletion after retention period"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Your Rights",
+      "content": [
+        "Access Personal Information",
+        "Update Information",
+        "Correct Information",
+        "Delete Account (where permitted)",
+        "Withdraw Marketing Consent"
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Children's Privacy",
+      "content": [
+        "Website not intended for users below 18 years",
+        "No intentional collection of children's personal information"
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Third-Party Services",
+      "content": [
+        "Payment Gateways",
+        "Courier Tracking",
+        "Social Media Platforms",
+        "External Website Links"
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Marketing Communications",
+      "content": [
+        "Offers",
+        "Product Launches",
+        "Recipes",
+        "Festival Greetings",
+        "Newsletters",
+        "Opt-out available"
+      ]
+    },
+    {
+      "id": 12,
+      "title": "WhatsApp & SMS Communications",
+      "content": [
+        "OTP Messages",
+        "Order Confirmation",
+        "Shipping Updates",
+        "Delivery Notifications",
+        "Customer Support",
+        "Marketing with Consent"
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Changes to this Privacy Policy",
+      "content": [
+        "Hariram's may update this policy from time to time.",
+        "Latest version will always be available on this website."
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Contact Information",
+      "content": {
+        "company": "Hariram's Pure Cow Ghee",
+        "email": "care@hariramsghee.com",
+        "phone": "+91-XXXXXXXXXX",
+        "businessHours": "Monday-Saturday, 9:00 AM - 6:00 PM"
+      }
+    }
+  ]
+}

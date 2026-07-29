@@ -1,0 +1,62 @@
+{
+  "summary": "Iteration 4 tested end-to-end. 20/20 new backend tests (legal + admin config + webp) PASS. 82/83 regression pass (1 pre-existing flaky brute-force test under xdist parallel). Frontend verified: TrustBand fully removed, home scrollHeight=2278px @1440x900 (well under 3200), 10/10 asset images are .webp, Shop nav (testid=header-nav-shop) smooth-scrolls to #products, footer Customer Care has all 5 legal SPA links, Admin /admin/config lists 27 files (including 12 nested legal/*), editor loads/saves/shows inline invalid-JSON error. Fixed 1 bug in LegalPage.jsx where all 5 legal routes rendered 'Terms & Conditions' because routes are static (no :slug param) — added useLocation fallback so each route resolves to its own document.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "LegalPage.jsx", "issue": "FIXED by testing agent — useParams().slug is undefined for static routes /terms-and-conditions etc., so LegalPage always fell back to 'terms_and_conditions' and rendered the same doc for ALL 5 legal routes. Fix: derive slug from useLocation().pathname when useParams slug is absent. Verified: after fix, /privacy-policy shows 'Privacy Policy' H1, /returns-refunds shows 'Returns & Refund Policy', /shipping-delivery shows 'Shipping & Delivery Policy', /payment-policy shows 'Payment Policy'.", "selector": "h1", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration4.py",
+    "/app/backend/tests/test_hariram_api.py",
+    "/app/backend/tests/test_admin_api.py",
+    "/app/test_reports/pytest/iteration4_results.xml"
+  ],
+  "action_items": [
+    "Main agent: review LegalPage.jsx fix (added useLocation fallback for slug derivation). Consider migrating routes to use path parameter (/legal/:slug) or keep current static routes with useLocation fallback.",
+    "Optional: test_admin_api.py::test_bruteforce_lockout is flaky when pytest-xdist runs in parallel — parallel workers race on the lockout counter. Not related to iteration 4. Consider marking with @pytest.mark.serial or resetting db.admin_login_attempts inside the test."
+  ],
+  "critical_code_review_comments": [
+    "LegalPage.jsx used useParams().slug but App.js uses static routes (/terms-and-conditions) with no :slug param — a design mismatch that made 4 of 5 legal pages silently identical. Testing agent fixed with useLocation fallback. Ideal fix: define a single dynamic route /:legalSlug or /legal/:slug and add a slug allow-list guard.",
+    "admin_config.py._resolve uses 'CONFIG_DIR.resolve() not in target.parents' which correctly blocks '../server.py' (returns 400), verified by test. However it allows any nested folder that happens to be inside CONFIG_DIR — currently only legal/ exists so this is safe.",
+    "server.py legal_document endpoint injects manifest metadata AFTER json load — if json file has its own 'title', it wins (setdefault). Good pattern.",
+    "AdminConfigFilesPage editor uses a plain textarea (no syntax highlighting). Acceptable for admin usage but consider Monaco for larger JSONs.",
+    "Footer.customerCare labels/urls in config are hard-coded 'Track Your Order' → /account (correct) but the customerCare list mixes legal (5 entries) with account (1 entry). Consider splitting into 'Legal' + 'Support' for clarity."
+  ],
+  "updated_files": [
+    "/app/frontend/src/pages/LegalPage.jsx (fixed slug resolution via useLocation)",
+    "/app/backend/tests/test_iteration4.py (new — 20 tests: 5 legal docs + manifest + 404 + 8 admin-config incl. path-traversal & JSON validation + 3 webp assets + nav + footer config)"
+  ],
+  "success_rate": {
+    "backend": "100% iteration-4 (20/20) + 82/83 regression (1 flaky xdist brute-force test)",
+    "frontend": "100% after LegalPage fix — home compaction / webp / shop-scroll / 5 legal pages / footer links / admin-config editor all verified"
+  },
+  "test_credentials": "admin / Harirams0507 (from backend/.env). Customer OTP fixed 123456.",
+  "seed_data_creation": "Backend tests briefly wrote _test_marker to footer.json and appended a TEST_iter4 marker to legal/terms_and_conditions.md — both restored to original within the same test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Legal routes are STATIC in App.js (not /:slug) — LegalPage now derives slug from useLocation().pathname. If future refactor changes routes to dynamic /:slug, useParams will take precedence (paramSlug || pathSlug). Legal manifest lives at /app/backend/config/legal/legal_manifest.json; documents are id-based (snake_case). Admin config testids: admin-config-page, admin-config-file-<path_with_slashes_and_dots_replaced_by_underscores> (e.g. legal/terms_and_conditions.json → admin-config-file-legal_terms_and_conditions_json), admin-config-editor, admin-config-save. Admin nav testids: admin-nav-{dashboard,products,shipping,config,pending,completed}. Header shop testid: header-nav-shop. Home page @1440x900 = 2278px scrollHeight. Regression: run pytest backend/tests/ -q; brute-force test is flaky under xdist — safe to ignore or run serially.",
+  "verification_evidence": {
+    "iteration4_pytest": "20 passed in 2.29s",
+    "regression_pytest": "82 passed, 1 flaky (test_bruteforce_lockout xdist)",
+    "home_scrollHeight_1440x900": "2278px (target <3200)",
+    "webp_image_ratio": "10/10 asset images use .webp",
+    "trust_band_phrases_removed": "0/4 remaining",
+    "products_section_in_view_after_shop_click": true,
+    "footer_customer_care_legal_links": 5,
+    "admin_config_files_count": 27,
+    "admin_config_legal_files_count": 12,
+    "invalid_json_inline_error": "Invalid JSON: Unexpected token ',', \"{\\\"broken\\\": ,,}\" is not valid JSON",
+    "legal_h1_per_route": {
+      "/terms-and-conditions": "Terms & Conditions",
+      "/privacy-policy": "Privacy Policy",
+      "/returns-refunds": "Returns & Refund Policy",
+      "/shipping-delivery": "Shipping & Delivery Policy",
+      "/payment-policy": "Payment Policy"
+    },
+    "footer_TC_link_stays_in_SPA": true,
+    "path_traversal_blocked_400": true
+  }
+}

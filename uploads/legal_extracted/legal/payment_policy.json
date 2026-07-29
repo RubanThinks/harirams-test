@@ -1,0 +1,100 @@
+{
+  "document": {
+    "id": "payment_policy",
+    "title": "Payment Policy",
+    "version": "1.0",
+    "effectiveDate": "DD-MMM-YYYY",
+    "lastUpdated": "DD-MMM-YYYY",
+    "language": "en-IN"
+  },
+  "sections": [
+    {
+      "id": 1,
+      "title": "Accepted Payment Methods",
+      "content": [
+        "UPI",
+        "Credit Cards",
+        "Debit Cards",
+        "Net Banking",
+        "Wallets supported by the payment gateway",
+        "Other payment methods displayed during checkout"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Payment Gateway",
+      "content": [
+        "Payments are processed through authorised third-party payment gateway providers.",
+        "Hariram's does not process or store sensitive payment credentials.",
+        "Payment providers use industry-standard encryption and security."
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Payment Confirmation",
+      "content": [
+        "Orders are confirmed only after successful payment authorisation and confirmation from the payment gateway.",
+        "Customers will receive an Order Confirmation after successful payment."
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Failed Payments",
+      "content": [
+        "Payments may fail due to insufficient funds, bank authorisation failure, UPI timeout, network interruption, or technical issues.",
+        "Failed payments do not create confirmed orders.",
+        "Customers may retry the payment."
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Payment Security",
+      "content": [
+        "Hariram's does not store card details, CVV, UPI PIN, or banking credentials.",
+        "Customers should never share OTPs or passwords with anyone."
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Refunds",
+      "content": [
+        "Approved refunds are processed to the original payment method.",
+        "Refunds typically take 5–10 business days, subject to the payment provider or bank."
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Payment Disputes",
+      "content": [
+        "Customers should contact Hariram's if they believe they have been charged incorrectly.",
+        "Hariram's will coordinate with the payment gateway provider to investigate payment-related issues."
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Pricing Currency",
+      "content": [
+        "All prices are displayed in Indian Rupees (INR ₹).",
+        "Applicable taxes and shipping charges are displayed during checkout before payment."
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Changes to this Policy",
+      "content": [
+        "Hariram's may update this Payment Policy from time to time.",
+        "The latest version will always be available on this website."
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Contact Information",
+      "content": {
+        "company": "Hariram's Pure Cow Ghee",
+        "email": "care@hariramsghee.com",
+        "phone": "+91-XXXXXXXXXX",
+        "businessHours": "Monday–Saturday, 9:00 AM–6:00 PM"
+      }
+    }
+  ]
+}
