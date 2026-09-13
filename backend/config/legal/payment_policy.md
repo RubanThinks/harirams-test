@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 
-**Effective Date:** DD-MMM-YYYY
+**Effective Date:** 29-Jul-2026
 
 ---
 
@@ -115,11 +115,11 @@ The latest version will always be available on this website.
 
 For any questions regarding payments, please contact:
 
-**Hariram's Pure Cow Ghee**
+**HARIRAM HOME NEEDS**
 
-Email: care@hariramsghee.com
+Email: hariramhomeneeds@gmail.com
 
-Phone: +91-XXXXXXXXXX
+Phone: +91-9500021456
 
 Business Hours:
 
@@ -131,4 +131,4 @@ Monday – Saturday
 
 **Document Version:** 1.0
 
-**Last Updated:** DD-MMM-YYYY
+**Last Updated:** 29-Jul-2026

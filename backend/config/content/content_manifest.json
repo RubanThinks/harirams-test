@@ -1,0 +1,9 @@
+{
+  "manifestVersion": "1.0",
+  "documents": [
+    { "id": "why_hariram", "title": "Why Hariram's", "route": "/why-hariram", "markdown": "why_hariram.md" },
+    { "id": "recipes", "title": "Recipes", "route": "/recipes", "markdown": "recipes.md" },
+    { "id": "faq", "title": "FAQ", "route": "/faq", "markdown": "faq.md" },
+    { "id": "contact", "title": "Contact Us", "route": "/contact", "markdown": "contact.md" }
+  ]
+}

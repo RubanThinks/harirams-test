@@ -18,7 +18,7 @@ export default function BenefitsStrip() {
   return (
     <section
       data-testid={TESTIDS.benefits}
-      className="w-full py-6 lg:py-8"
+      className="w-full py-3 lg:py-5"
       style={{ background: "var(--brand-cream)" }}
       aria-label="Product benefits"
     >
@@ -31,7 +31,7 @@ export default function BenefitsStrip() {
             boxShadow: "0 12px 40px -24px rgba(23, 76, 43, 0.25)",
           }}
         >
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-6 gap-x-2 lg:gap-x-4 items-center p-6 lg:p-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-4 gap-x-2 lg:gap-x-4 items-center p-4 lg:p-6">
             {benefits.map((b, i) => {
               const Icon = ICONS[b.icon] || Sparkles;
               return (

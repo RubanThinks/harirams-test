@@ -52,8 +52,8 @@ async def upload_rates(file: UploadFile = File(...), _: dict = Depends(require_a
         raise HTTPException(status_code=400, detail="Missing required fields (rules, defaultCharge)")
     if not isinstance(parsed.get("rules"), list):
         raise HTTPException(status_code=400, detail="'rules' must be a list")
-    with open(CONFIG_PATH, "wb") as f:
-        f.write(content)
+    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(parsed, f, indent=2, ensure_ascii=False)
     return {"success": True}
 
 

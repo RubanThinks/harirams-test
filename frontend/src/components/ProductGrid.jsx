@@ -35,12 +35,12 @@ export default function ProductGrid() {
     <section
       id="products"
       data-testid={TESTIDS.productsSection}
-      className="w-full py-8 lg:py-12 scroll-mt-24"
+      className="w-full py-4 lg:py-8 scroll-mt-24"
       style={{ background: "var(--brand-cream)" }}
       aria-label="Choose your pack"
     >
       <div className="container-brand">
-        <div className="text-center mb-6 lg:mb-8">
+        <div className="text-center mb-4 lg:mb-6">
           <div className="flex items-center justify-center mb-2">
             <span className="gold-ornament" />
           </div>

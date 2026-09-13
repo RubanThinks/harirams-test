@@ -46,7 +46,18 @@ export default function CartDrawer() {
               <p style={{ color: "var(--brand-muted)" }}>
                 Add a pack of pure ghee to get started.
               </p>
-              <button className="btn-ghost mt-2" onClick={() => setOpen(false)}>
+              <button
+                data-testid="cart-continue-shopping"
+                className="btn-ghost mt-2"
+                onClick={() => {
+                  setOpen(false);
+                  if (window.location.pathname === "/") {
+                    document.getElementById("products")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  } else {
+                    navigate("/#products");
+                  }
+                }}
+              >
                 Continue Shopping
               </button>
             </div>

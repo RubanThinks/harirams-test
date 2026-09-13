@@ -40,7 +40,7 @@ export default function Footer() {
 
   return (
     <footer data-testid={TESTIDS.footer} className="w-full" style={{ background: "var(--brand-cream)" }}>
-      <div className="container-brand py-8 lg:py-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-6">
+      <div className="container-brand py-6 lg:py-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-5">
         {/* Brand column */}
         <div className="lg:col-span-1">
           <div className="flex items-center gap-3">
@@ -110,8 +110,8 @@ export default function Footer() {
           <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--brand-text)" }}>
             {footer.newsletter?.subheading}
           </p>
-          <form onSubmit={subscribe} className="mt-4 flex items-center gap-2">
-            <div className="flex-1 flex items-center rounded-full border pl-4 pr-2 py-1 bg-white"
+          <form onSubmit={subscribe} className="mt-4 flex items-center gap-2 max-w-full">
+            <div className="flex-1 min-w-0 flex items-center rounded-full border pl-3 pr-2 py-0.5 bg-white"
                  style={{ borderColor: "var(--brand-border)" }}>
               <input
                 data-testid={TESTIDS.newsletterEmail}
@@ -121,15 +121,15 @@ export default function Footer() {
                 required
                 aria-label="Email address"
                 placeholder={footer.newsletter?.placeholder || "Enter your email"}
-                className="flex-1 bg-transparent outline-none text-sm py-2"
+                className="flex-1 min-w-0 bg-transparent outline-none text-xs py-1.5"
               />
-              <Heart className="w-4 h-4" style={{ color: "var(--brand-accent)" }} />
+              <Heart className="w-3.5 h-3.5" style={{ color: "var(--brand-accent)" }} />
             </div>
             <button
               data-testid={TESTIDS.newsletterSubmit}
               type="submit"
               disabled={busy}
-              className="btn-primary !py-3 !px-5 text-xs"
+              className="btn-primary !py-2 !px-3 text-[11px] shrink-0"
             >
               {busy ? "..." : (footer.newsletter?.cta || "SUBSCRIBE")}
             </button>

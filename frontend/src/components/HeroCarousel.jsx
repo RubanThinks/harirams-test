@@ -133,7 +133,7 @@ export default function HeroCarousel() {
       </div>
 
       {/* Mobile-visible CTA below the image (in addition to hotspot) */}
-      <div className="md:hidden container-brand py-5 flex justify-center">
+      <div className="md:hidden container-brand py-3 flex justify-center">
         <button
           onClick={scrollToProducts}
           className="btn-primary"

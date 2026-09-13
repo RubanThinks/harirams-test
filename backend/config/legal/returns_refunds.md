@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 
-**Effective Date:** DD-MMM-YYYY
+**Effective Date:** 29-Jul-2026
 
 ---
 
@@ -134,11 +134,11 @@ If Hariram's is unable to fulfil an order, a full refund will be issued.
 
 For any questions regarding Returns & Refunds, please contact:
 
-**Hariram's Pure Cow Ghee**
+**HARIRAM HOME NEEDS**
 
-Email: care@hariramsghee.com
+Email: hariramhomeneeds@gmail.com
 
-Phone: +91-XXXXXXXXXX
+Phone: +91-9500021456
 
 Business Hours:
 
@@ -150,4 +150,4 @@ Monday – Saturday
 
 **Document Version:** 1.0
 
-**Last Updated:** DD-MMM-YYYY
+**Last Updated:** 29-Jul-2026

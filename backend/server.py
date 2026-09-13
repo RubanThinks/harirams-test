@@ -4,11 +4,12 @@ FastAPI + MongoDB. Phase 1 (Guest checkout, mocked OTP, mocked payment).
 All business content is config-driven from /app/backend/config/*.json
 """
 from fastapi import FastAPI, APIRouter, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
+import asyncio
 import os
 import json
 import logging
@@ -61,6 +62,61 @@ ALLOWED_CONFIGS = {
 async def legal_manifest():
     with open(CONFIG_DIR / "legal" / "legal_manifest.json", "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+# Content pages (markdown-driven, editable via Admin Config Editor)
+CONTENT_DIR = CONFIG_DIR / "content"
+
+
+@api.get("/content/manifest")
+async def content_manifest():
+    with open(CONTENT_DIR / "content_manifest.json", "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+@api.get("/content/{doc_id}")
+async def content_document(doc_id: str):
+    safe = re.sub(r"[^a-z0-9_]", "", doc_id.lower())
+    md_path = CONTENT_DIR / f"{safe}.md"
+    if not md_path.exists():
+        raise HTTPException(status_code=404, detail="Page not found")
+    manifest_path = CONTENT_DIR / "content_manifest.json"
+    title = safe
+    if manifest_path.exists():
+        with open(manifest_path, "r", encoding="utf-8") as f:
+            for doc in json.load(f).get("documents", []):
+                if doc.get("id") == safe:
+                    title = doc.get("title", safe)
+                    break
+    with open(md_path, "r", encoding="utf-8") as f:
+        return {"id": safe, "title": title, "markdown": f.read()}
+
+
+# Feedback capture
+class FeedbackIn(BaseModel):
+    name: Optional[str] = ""
+    email: Optional[str] = ""
+    phone: Optional[str] = ""
+    rating: Optional[int] = None
+    message: str
+
+
+@api.post("/feedback")
+async def submit_feedback(req: FeedbackIn):
+    if not (req.message or "").strip():
+        raise HTTPException(status_code=400, detail="Feedback message is required")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "name": (req.name or "").strip(),
+        "email": (req.email or "").strip().lower(),
+        "phone": _norm_phone(req.phone or ""),
+        "rating": req.rating,
+        "message": req.message.strip(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.feedback.insert_one(dict(doc))
+    log.info(f"[FEEDBACK] {doc['id']} rating={doc['rating']} from={doc['email'] or doc['phone']}")
+    return {"success": True, "id": doc["id"]}
 
 
 @api.get("/legal/{doc_id}")
@@ -430,12 +486,33 @@ from admin_products import register as _reg_admin_products
 from admin_shipping import register as _reg_admin_shipping
 from admin_orders import register as _reg_admin_orders
 from admin_config import register as _reg_admin_config
+from storage import init_storage as _storage_init, get_object as _storage_get
 
 _reg_admin_auth(api, db)
-_reg_admin_products(api)
+_reg_admin_products(api, db)
 _reg_admin_shipping(api)
 _reg_admin_orders(api, db)
 _reg_admin_config(api)
+
+
+# Public product-image serving: object storage first (tracked in MongoDB),
+# legacy on-disk files as fallback for pre-migration uploads.
+@api.get("/uploads/products/{filename}")
+async def serve_product_image(filename: str):
+    safe = re.sub(r"[^A-Za-z0-9_.-]", "", filename)
+    record = await db.product_images.find_one({"filename": safe, "is_deleted": False}, {"_id": 0})
+    if record:
+        try:
+            data, ctype = await asyncio.to_thread(_storage_get, record["storage_path"])
+            return Response(content=data, media_type=record.get("content_type") or ctype)
+        except Exception as e:
+            log.error(f"Object storage fetch failed for {safe}: {e}")
+            raise HTTPException(status_code=404, detail="Image not found")
+    local = ROOT_DIR / "uploads" / "products" / safe
+    if local.exists():
+        return FileResponse(local)
+    raise HTTPException(status_code=404, detail="Image not found")
+
 
 app.include_router(api)
 
@@ -452,6 +529,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+async def startup_storage():
+    try:
+        await asyncio.to_thread(_storage_init)
+        log.info("Object storage initialized")
+    except Exception as e:
+        log.error(f"Object storage init failed: {e}")
 
 
 @app.on_event("shutdown")

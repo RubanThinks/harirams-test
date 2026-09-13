@@ -11,6 +11,9 @@ import OrderConfirmationPage from "@/pages/OrderConfirmationPage";
 import SearchPage from "@/pages/SearchPage";
 import AccountLoginPage from "@/pages/AccountLoginPage";
 import AccountPage from "@/pages/AccountPage";
+import ContentPage from "@/pages/ContentPage";
+import FeedbackPage from "@/pages/FeedbackPage";
+import ScrollToTop from "@/components/ScrollToTop";
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -49,6 +52,7 @@ export default function App() {
       <AccountProvider>
         <CartProvider>
           <BrowserRouter>
+            <ScrollToTop />
             <Toaster position="top-center" richColors closeButton />
             <Routes>
               {/* Public storefront */}
@@ -58,6 +62,13 @@ export default function App() {
               <Route path="/search" element={<StorefrontLayout><SearchPage /></StorefrontLayout>} />
               <Route path="/account/login" element={<StorefrontLayout><AccountLoginPage /></StorefrontLayout>} />
               <Route path="/account" element={<StorefrontLayout><AccountPage /></StorefrontLayout>} />
+              <Route path="/feedback" element={<StorefrontLayout><FeedbackPage /></StorefrontLayout>} />
+
+              {/* Content pages (markdown-driven) */}
+              <Route path="/why-hariram" element={<StorefrontLayout><ContentPage /></StorefrontLayout>} />
+              <Route path="/recipes" element={<StorefrontLayout><ContentPage /></StorefrontLayout>} />
+              <Route path="/faq" element={<StorefrontLayout><ContentPage /></StorefrontLayout>} />
+              <Route path="/contact" element={<StorefrontLayout><ContentPage /></StorefrontLayout>} />
 
               {/* Legal pages (backed by /api/legal/{id}) */}
               <Route path="/terms-and-conditions" element={<StorefrontLayout><LegalPage /></StorefrontLayout>} />

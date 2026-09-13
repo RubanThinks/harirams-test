@@ -1,30 +1,33 @@
 """
 Admin — product catalog CRUD.
 Source of truth: /app/backend/config/products.json (user's Phase 1 choice).
-Product images stored on disk: /app/backend/uploads/products/*
-Served via /api/uploads/products/* mount.
+Product images stored in Emergent Object Storage (references tracked in MongoDB
+`product_images`), served via the public /api/uploads/products/{filename} route.
 """
+import asyncio
 import json
-import os
 import re
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from admin_auth import require_admin
+from storage import APP_NAME, put_object
 
 BACKEND_DIR = Path(__file__).parent
 CONFIG_PATH = BACKEND_DIR / "config" / "products.json"
-UPLOAD_DIR = BACKEND_DIR / "uploads" / "products"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 ALLOWED_EXT = {".png", ".jpg", ".jpeg", ".webp"}
+MIME_TYPES = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "webp": "image/webp"}
 IMAGE_URL_PREFIX = "/api/uploads/products/"
 
 router = APIRouter(prefix="/admin/products", tags=["admin-products"])
+
+_db = None
 
 
 class ProductIn(BaseModel):
@@ -119,14 +122,26 @@ async def upload_image(
     ext = _sanitize_ext(file.filename or "")
     safe_sku = re.sub(r"[^A-Za-z0-9_-]", "_", sku)
     filename = f"{safe_sku}_{uuid.uuid4().hex[:8]}{ext}"
-    target = UPLOAD_DIR / filename
     content = await file.read()
     if len(content) > 5 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="Image too large (max 5 MB)")
-    with open(target, "wb") as f:
-        f.write(content)
+    content_type = MIME_TYPES.get(ext.lstrip("."), "application/octet-stream")
+    storage_path = f"{APP_NAME}/uploads/products/{filename}"
+    result = await asyncio.to_thread(put_object, storage_path, content, content_type)
+    await _db.product_images.insert_one({
+        "id": str(uuid.uuid4()),
+        "filename": filename,
+        "storage_path": result["path"],
+        "original_filename": file.filename,
+        "content_type": content_type,
+        "size": result.get("size", len(content)),
+        "is_deleted": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
     return {"success": True, "url": f"{IMAGE_URL_PREFIX}{filename}", "size": len(content)}
 
 
-def register(api: APIRouter):
+def register(api: APIRouter, db):
+    global _db
+    _db = db
     api.include_router(router)

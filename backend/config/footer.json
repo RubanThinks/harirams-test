@@ -1,74 +1,24 @@
 {
   "brandLine": "Pure by Tradition. Honest by Choice. Yours Always.",
   "quickLinks": [
-    {
-      "label": "Home",
-      "url": "/"
-    },
-    {
-      "label": "Our Ghee",
-      "url": "#products"
-    },
-    {
-      "label": "Why Hariram's",
-      "url": "/our-story"
-    },
-    {
-      "label": "FAQ",
-      "url": "/faq"
-    },
-    {
-      "label": "Contact Us",
-      "url": "/contact"
-    }
+    { "label": "Home", "url": "/" },
+    { "label": "Our Ghee", "url": "/#products" },
+    { "label": "Why Hariram's", "url": "/why-hariram" },
+    { "label": "Recipes", "url": "/recipes" },
+    { "label": "FAQ", "url": "/faq" },
+    { "label": "Contact Us", "url": "/contact" },
+    { "label": "Feedback", "url": "/feedback" }
   ],
   "customerCare": [
-    {
-      "label": "Shipping & Delivery",
-      "url": "/shipping-delivery"
-    },
-    {
-      "label": "Returns & Refunds",
-      "url": "/returns-refunds"
-    },
-    {
-      "label": "Payment Options",
-      "url": "/payment-policy"
-    },
-    {
-      "label": "Track Your Order",
-      "url": "/account"
-    },
-    {
-      "label": "Terms & Conditions",
-      "url": "/terms-and-conditions"
-    },
-    {
-      "label": "Privacy Policy",
-      "url": "/privacy-policy"
-    }
+    { "label": "Shipping & Delivery", "url": "/shipping-delivery" },
+    { "label": "Returns & Refunds", "url": "/returns-refunds" },
+    { "label": "Payment Options", "url": "/payment-policy" },
+    { "label": "Track Your Order", "url": "/account" },
+    { "label": "Terms & Conditions", "url": "/terms-and-conditions" },
+    { "label": "Privacy Policy", "url": "/privacy-policy" }
   ],
   "myAccount": [
-    {
-      "label": "My Orders",
-      "url": "/orders"
-    },
-    {
-      "label": "My Profile",
-      "url": "/profile"
-    },
-    {
-      "label": "Address Book",
-      "url": "/addresses"
-    },
-    {
-      "label": "Wishlist",
-      "url": "/wishlist"
-    },
-    {
-      "label": "Logout",
-      "url": "/logout"
-    }
+    { "label": "My Account", "url": "/account" }
   ],
   "newsletter": {
     "heading": "Stay Connected",

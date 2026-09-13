@@ -3,8 +3,8 @@
     "id": "shipping_and_delivery",
     "title": "Shipping & Delivery Policy",
     "version": "1.0",
-    "effectiveDate": "DD-MMM-YYYY",
-    "lastUpdated": "DD-MMM-YYYY",
+    "effectiveDate": "29-Jul-2026",
+    "lastUpdated": "29-Jul-2026",
     "language": "en-IN"
   },
   "serviceArea": {
@@ -106,9 +106,9 @@
     "redispatchChargesMayApply": true
   },
   "customerSupport": {
-    "company": "Hariram's Pure Cow Ghee",
-    "email": "care@hariramsghee.com",
-    "phone": "+91-XXXXXXXXXX",
+    "company": "HARIRAM HOME NEEDS",
+    "email": "hariramhomeneeds@gmail.com",
+    "phone": "+91-9500021456",
     "businessHours": {
       "days": "Monday-Saturday",
       "time": "09:00-18:00"
