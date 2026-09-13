@@ -48,14 +48,25 @@ def _reset_bruteforce():
     m.close()
 
 
-@pytest.fixture(scope="session")
-def admin_token():
+def _admin_login_two_step() -> str:
+    """Complete the 2FA login flow and return a bearer token."""
     r = requests.post(f"{BASE_URL}/api/admin/auth/login",
                       json={"username": ADMIN_USER, "password": ADMIN_PASS})
     assert r.status_code == 200, f"admin login failed: {r.status_code} {r.text}"
-    data = r.json()
+    step1 = r.json()
+    assert step1.get("otpRequired") is True
+    assert "sessionId" in step1 and "mockOtp" in step1
+    r2 = requests.post(f"{BASE_URL}/api/admin/auth/verify-otp",
+                       json={"sessionId": step1["sessionId"], "otp": step1["mockOtp"]})
+    assert r2.status_code == 200, f"admin OTP verify failed: {r2.status_code} {r2.text}"
+    data = r2.json()
     assert "token" in data and data["user"]["role"] == "admin"
     return data["token"]
+
+
+@pytest.fixture(scope="session")
+def admin_token():
+    return _admin_login_two_step()
 
 
 @pytest.fixture
@@ -91,13 +102,38 @@ def seeded_orders():
 # ---------------------------------------------------------------------------
 class TestAdminAuth:
     def test_login_success(self):
+        # Step 1 – password → OTP challenge
         r = requests.post(f"{BASE_URL}/api/admin/auth/login",
                           json={"username": ADMIN_USER, "password": ADMIN_PASS})
         assert r.status_code == 200
-        d = r.json()
+        step1 = r.json()
+        assert step1.get("otpRequired") is True
+        assert isinstance(step1.get("sessionId"), str) and len(step1["sessionId"]) >= 20
+        assert step1.get("otpTarget", "").startswith("+91")
+        assert isinstance(step1.get("mockOtp"), str) and len(step1["mockOtp"]) == 6
+
+        # Step 2 – OTP → real admin JWT
+        r2 = requests.post(f"{BASE_URL}/api/admin/auth/verify-otp",
+                           json={"sessionId": step1["sessionId"], "otp": step1["mockOtp"]})
+        assert r2.status_code == 200
+        d = r2.json()
         assert d["tokenType"] == "Bearer"
         assert d["user"] == {"username": "admin", "role": "admin"}
         assert isinstance(d["token"], str) and len(d["token"]) > 20
+
+    def test_verify_otp_wrong_code(self):
+        r = requests.post(f"{BASE_URL}/api/admin/auth/login",
+                          json={"username": ADMIN_USER, "password": ADMIN_PASS})
+        assert r.status_code == 200
+        session = r.json()["sessionId"]
+        r2 = requests.post(f"{BASE_URL}/api/admin/auth/verify-otp",
+                           json={"sessionId": session, "otp": "000000"})
+        assert r2.status_code == 401
+
+    def test_verify_otp_unknown_session(self):
+        r = requests.post(f"{BASE_URL}/api/admin/auth/verify-otp",
+                          json={"sessionId": "nope-nope-nope", "otp": "123456"})
+        assert r.status_code == 404
 
     def test_login_wrong_password(self):
         r = requests.post(f"{BASE_URL}/api/admin/auth/login",
@@ -116,15 +152,15 @@ class TestAdminAuth:
 
     def test_bruteforce_lockout(self):
         """5 fails should lock the identifier (429)."""
-        m = MongoClient(MONGO_URL)
-        m[DB_NAME].admin_login_attempts.delete_many({})
-        m.close()
-        # Use a unique-ish username to avoid affecting other tests
+        # Use a unique username so parallel xdist workers doing correct
+        # `admin` logins don't clear our failure counter mid-test.
+        import uuid as _uuid
+        uname = f"brute_{_uuid.uuid4().hex[:8]}"
         for _ in range(5):
             requests.post(f"{BASE_URL}/api/admin/auth/login",
-                          json={"username": "admin", "password": "bad"})
+                          json={"username": uname, "password": "bad"})
         r = requests.post(f"{BASE_URL}/api/admin/auth/login",
-                          json={"username": "admin", "password": "bad"})
+                          json={"username": uname, "password": "bad"})
         assert r.status_code == 429, f"expected 429, got {r.status_code}: {r.text}"
         # cleanup so subsequent tests can login
         m = MongoClient(MONGO_URL)

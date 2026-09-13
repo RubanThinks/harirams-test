@@ -23,10 +23,15 @@ def s():
 
 @pytest.fixture(scope="module")
 def admin_token(s):
-    # clear brute-force in case
+    # Two-step 2FA: password → verify OTP with the mockOtp echoed in response.
     r = s.post(f"{API}/admin/auth/login", json={"username": ADMIN_USER, "password": ADMIN_PASS})
     assert r.status_code == 200, r.text
-    return r.json()["token"]
+    step1 = r.json()
+    assert step1.get("otpRequired") is True and "mockOtp" in step1
+    r2 = s.post(f"{API}/admin/auth/verify-otp",
+                json={"sessionId": step1["sessionId"], "otp": step1["mockOtp"]})
+    assert r2.status_code == 200, r2.text
+    return r2.json()["token"]
 
 
 @pytest.fixture(scope="module")

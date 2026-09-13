@@ -1,8 +1,20 @@
 """
-Admin authentication — bcrypt + JWT bearer token.
-Single-admin design (credentials from backend/.env).
+Admin authentication — bcrypt + JWT bearer token + WhatsApp OTP 2FA (mocked).
+
+Flow:
+  Step 1 (POST /admin/auth/login)  ->  password check + generates 6-digit OTP,
+                                       stores it against a challenge sessionId
+                                       (5-min TTL) and returns sessionId.
+                                       Mock delivery target: +91-9500049550.
+                                       Response echoes `mockOtp` so it can be
+                                       shown on screen until MSG91 WhatsApp
+                                       integration replaces the mock.
+  Step 2 (POST /admin/auth/verify-otp)  ->  verifies OTP for the sessionId and
+                                            issues the real admin JWT (8 h).
 """
 import os
+import uuid
+import random
 import bcrypt
 import jwt
 from datetime import datetime, timezone, timedelta
@@ -13,6 +25,9 @@ JWT_ALGORITHM = "HS256"
 ACCESS_TTL_HOURS = 8
 BRUTE_LOCK_MINUTES = 15
 BRUTE_MAX_ATTEMPTS = 5
+OTP_TTL_MINUTES = 5
+OTP_MAX_ATTEMPTS = 5
+OTP_TARGET_PHONE = "+91-9500049550"  # hardcoded per spec; swap when MSG91 goes live
 
 router = APIRouter(prefix="/admin/auth", tags=["admin-auth"])
 
@@ -20,6 +35,11 @@ router = APIRouter(prefix="/admin/auth", tags=["admin-auth"])
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+
+class VerifyOtpRequest(BaseModel):
+    sessionId: str
+    otp: str
 
 
 def _secret() -> str:
@@ -44,6 +64,10 @@ def _make_token(username: str) -> str:
     return jwt.encode(payload, _secret(), algorithm=JWT_ALGORITHM)
 
 
+def _generate_otp() -> str:
+    return f"{random.randint(0, 999999):06d}"
+
+
 async def require_admin(request: Request) -> dict:
     """FastAPI dependency — enforces valid admin JWT."""
     auth = request.headers.get("Authorization", "")
@@ -62,7 +86,7 @@ async def require_admin(request: Request) -> dict:
 
 
 def register(api: APIRouter, db):
-    """Attach admin auth routes + brute-force protection using db.admin_login_attempts."""
+    """Attach admin auth routes + brute-force protection + 2FA sessions."""
 
     async def _check_lock(identifier: str):
         rec = await db.admin_login_attempts.find_one({"identifier": identifier})
@@ -97,7 +121,11 @@ def register(api: APIRouter, db):
 
     @router.post("/login")
     async def login(req: LoginRequest, request: Request):
-        client_ip = request.client.host if request.client else "unknown"
+        # Behind kubernetes ingress `request.client.host` can rotate across
+        # ingress-controller pod IPs, breaking the identifier for the
+        # brute-force limiter. Prefer the client IP the ingress forwards.
+        fwd = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
+        client_ip = fwd or (request.client.host if request.client else "unknown")
         identifier = f"{client_ip}:{req.username.lower()}"
         await _check_lock(identifier)
 
@@ -108,12 +136,66 @@ def register(api: APIRouter, db):
             raise HTTPException(status_code=401, detail="Invalid username or password")
 
         await _clear_fails(identifier)
-        token = _make_token(env_user)
+
+        # Step 1 passed — issue an OTP challenge session.
+        session_id = uuid.uuid4().hex
+        otp = _generate_otp()
+        now = datetime.now(timezone.utc)
+        await db.admin_otp_sessions.insert_one({
+            "sessionId": session_id,
+            "username": env_user,
+            "otp": otp,
+            "attempts": 0,
+            "verified": False,
+            "created_at": now.isoformat(),
+            "expires_at": (now + timedelta(minutes=OTP_TTL_MINUTES)).isoformat(),
+        })
+        # Mock delivery — real MSG91 WhatsApp call goes here at go-live
+        import logging
+        logging.getLogger("hariram").info(
+            f"[MOCK-WHATSAPP OTP -> {OTP_TARGET_PHONE}] Admin login OTP: {otp} (session {session_id[:8]})"
+        )
+        return {
+            "otpRequired": True,
+            "sessionId": session_id,
+            "otpTarget": OTP_TARGET_PHONE,
+            "ttlMinutes": OTP_TTL_MINUTES,
+            "mock": True,
+            "mockOtp": otp,  # remove once real MSG91 WhatsApp is wired
+        }
+
+    @router.post("/verify-otp")
+    async def verify_otp(req: VerifyOtpRequest):
+        sess = await db.admin_otp_sessions.find_one({"sessionId": req.sessionId})
+        if not sess:
+            raise HTTPException(status_code=404, detail="Invalid or expired OTP session. Please sign in again.")
+
+        try:
+            expires_at = datetime.fromisoformat(sess["expires_at"])
+        except (ValueError, TypeError):
+            expires_at = datetime.now(timezone.utc)
+        if expires_at < datetime.now(timezone.utc):
+            await db.admin_otp_sessions.delete_one({"sessionId": req.sessionId})
+            raise HTTPException(status_code=401, detail="OTP expired. Please sign in again.")
+
+        await db.admin_otp_sessions.update_one({"sessionId": req.sessionId}, {"$inc": {"attempts": 1}})
+        if sess.get("attempts", 0) + 1 >= OTP_MAX_ATTEMPTS:
+            # Only invalidate the session after this attempt actually is the Nth wrong one
+            if (req.otp or "").strip() != sess["otp"]:
+                await db.admin_otp_sessions.delete_one({"sessionId": req.sessionId})
+                raise HTTPException(status_code=429, detail="Too many OTP attempts. Please sign in again.")
+
+        if (req.otp or "").strip() != sess["otp"]:
+            raise HTTPException(status_code=401, detail="Invalid OTP. Please try again.")
+
+        await db.admin_otp_sessions.delete_one({"sessionId": req.sessionId})
+        username = sess.get("username") or os.environ.get("ADMIN_USER", "admin")
+        token = _make_token(username)
         return {
             "token": token,
             "tokenType": "Bearer",
             "expiresInHours": ACCESS_TTL_HOURS,
-            "user": {"username": env_user, "role": "admin"},
+            "user": {"username": username, "role": "admin"},
         }
 
     @router.get("/me")

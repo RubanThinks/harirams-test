@@ -31,8 +31,18 @@ export function AdminAuthProvider({ children }) {
 
   const client = useMemo(() => makeAdminClient(() => token), [token]);
 
-  const login = async (username, password) => {
+  /**
+   * Step 1 of admin sign-in. Returns the 2FA challenge:
+   * { otpRequired: true, sessionId, otpTarget, mockOtp?, ttlMinutes }
+   */
+  const requestOtp = async (username, password) => {
     const r = await client.post("/admin/auth/login", { username, password });
+    return r.data;
+  };
+
+  /** Step 2 — exchange OTP for a real admin JWT. */
+  const verifyOtp = async (sessionId, otp) => {
+    const r = await client.post("/admin/auth/verify-otp", { sessionId, otp });
     setToken(r.data.token);
     return r.data;
   };
@@ -40,7 +50,11 @@ export function AdminAuthProvider({ children }) {
   const logout = () => setToken(null);
 
   return (
-    <AdminAuthContext.Provider value={{ token, isAuthed: !!token, login, logout, client, API }}>
+    <AdminAuthContext.Provider value={{
+      token, isAuthed: !!token,
+      requestOtp, verifyOtp, logout,
+      client, API,
+    }}>
       {children}
     </AdminAuthContext.Provider>
   );

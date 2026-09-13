@@ -4,7 +4,7 @@ import uuid
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://ghee-shop-demo.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://pure-ghee-store-13.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 ADMIN_USER = "admin"
@@ -13,9 +13,16 @@ ADMIN_PASS = "Harirams0507"
 
 @pytest.fixture(scope="module")
 def admin_token():
-    r = requests.post(f"{API}/admin/auth/login", json={"username": ADMIN_USER, "password": ADMIN_PASS}, timeout=15)
+    # Two-step 2FA: password → verify OTP with the mockOtp echoed in response.
+    r = requests.post(f"{API}/admin/auth/login",
+                      json={"username": ADMIN_USER, "password": ADMIN_PASS}, timeout=15)
     assert r.status_code == 200, r.text
-    return r.json()["token"]
+    step1 = r.json()
+    assert step1.get("otpRequired") is True and "mockOtp" in step1
+    r2 = requests.post(f"{API}/admin/auth/verify-otp",
+                       json={"sessionId": step1["sessionId"], "otp": step1["mockOtp"]}, timeout=15)
+    assert r2.status_code == 200, r2.text
+    return r2.json()["token"]
 
 
 # ---------------- Content pages ----------------

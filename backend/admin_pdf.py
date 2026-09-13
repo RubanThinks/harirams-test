@@ -1,20 +1,35 @@
 """
-PDF generators for admin — pending-orders summary, address slip(s), invoice.
+PDF generators for admin — pending-orders summary, address stickers, invoice.
 Uses reportlab (server-side, no headless browser).
+
+Address stickers:
+  Each box shows the brand LOGO (top, centered), a bold TO block (name / lines /
+  city / phone) and a bold FROM block (company from company.json).
+  Sizing rule:
+    - <=3 addresses  -> A5 page (1 col x 3 rows = 3 boxes)
+    - 4..6 addresses -> A4 page (2 cols x 3 rows = 6 boxes)
+    - >6 addresses   -> greedy: fill A4 pages of 6 first, remainder on final page
+                         (A5 if <=3, else A4).
+  Deliverable is a single PDF with mixed page sizes.
 """
 import io
 import json
 from datetime import datetime
 from pathlib import Path
-from reportlab.lib.pagesizes import A4, LETTER
+
+from reportlab.lib.pagesizes import A4, A5
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
-from reportlab.lib.units import mm, cm
+from reportlab.lib.units import mm
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, HRFlowable, KeepTogether
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 )
 
-CONFIG_DIR = Path(__file__).parent / "config"
+BACKEND_DIR = Path(__file__).parent
+CONFIG_DIR = BACKEND_DIR / "config"
+LOGO_PATH = BACKEND_DIR.parent / "frontend" / "public" / "assets" / "logo" / "logo.jpeg"
 
 
 def _company() -> dict:
@@ -27,77 +42,196 @@ def _rs(n) -> str:
 
 
 # ---------------------------------------------------------------- Address(es)
+def _plan_pages(order_count: int) -> list[dict]:
+    """Return a list of {size: 'A4'|'A5', count: int} describing how the orders
+    will be laid out across pages.
+
+    Rule:
+      total <= 3            -> 1 page A5
+      4 <= total <= 6       -> 1 page A4
+      total  > 6            -> repeat A4(6) pages, then remainder:
+                                remainder <= 3 -> A5, else A4
+    """
+    plan: list[dict] = []
+    remaining = order_count
+    while remaining > 6:
+        plan.append({"size": "A4", "count": 6})
+        remaining -= 6
+    if remaining > 0:
+        if remaining <= 3:
+            plan.append({"size": "A5", "count": remaining})
+        else:
+            plan.append({"size": "A4", "count": remaining})
+    return plan
+
+
+def _addr_lines(order: dict) -> list[str]:
+    a = order.get("address") or {}
+    lines = [a.get("name", "").strip()]
+    if a.get("line1"): lines.append(a["line1"].strip())
+    if a.get("line2"): lines.append(a["line2"].strip())
+    if a.get("landmark"): lines.append(f"Near {a['landmark'].strip()}")
+    tail = ", ".join([x for x in [a.get("city", "").strip(), a.get("state", "").strip()] if x])
+    pin = (a.get("pincode") or "").strip()
+    if tail and pin: lines.append(f"{tail} - {pin}")
+    elif tail: lines.append(tail)
+    elif pin: lines.append(pin)
+    phone = (order.get("phone") or "").strip()
+    if phone: lines.append(f"Ph : +91-{phone}")
+    return [ln for ln in lines if ln]
+
+
+def _company_lines(company: dict) -> list[str]:
+    lines = [company.get("legalCompanyName") or company.get("brandName") or "HARIRAM'S"]
+    if company.get("address"): lines.append(company["address"])
+    if company.get("customerCare"): lines.append(f"Ph : {company['customerCare']}")
+    return lines
+
+
+def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
+              order: dict, company: dict, logo: ImageReader | None):
+    """Draw one address sticker inside the rectangle at (x, y) with size (w, h).
+    (x, y) is the BOTTOM-LEFT corner of the box in points."""
+    inset = 4 * mm
+    inner_left = x + inset
+    inner_right = x + w - inset
+    inner_top = y + h - inset
+    inner_bottom = y + inset
+
+    # Outer border
+    c.setStrokeColor(colors.HexColor("#3B2414"))
+    c.setLineWidth(0.8)
+    c.rect(x + 1 * mm, y + 1 * mm, w - 2 * mm, h - 2 * mm, stroke=1, fill=0)
+
+    # Logo (top-center)
+    logo_max_h = min(18 * mm, h * 0.22)
+    logo_bottom = inner_top - logo_max_h
+    if logo is not None:
+        try:
+            iw, ih = logo.getSize()
+            ratio = iw / ih if ih else 1.0
+            draw_h = logo_max_h
+            draw_w = draw_h * ratio
+            max_w = (w - 2 * inset) * 0.6
+            if draw_w > max_w:
+                draw_w = max_w
+                draw_h = draw_w / ratio
+            lx = x + (w - draw_w) / 2
+            ly = inner_top - draw_h
+            c.drawImage(logo, lx, ly, width=draw_w, height=draw_h,
+                        preserveAspectRatio=True, mask="auto")
+            logo_bottom = ly
+        except Exception:
+            pass
+
+    # Divider under logo
+    div_y = logo_bottom - 2 * mm
+    c.setStrokeColor(colors.HexColor("#D89B22"))
+    c.setLineWidth(0.6)
+    c.line(inner_left, div_y, inner_right, div_y)
+
+    # ---- TO block ----
+    text_top = div_y - 3 * mm
+    c.setFillColor(colors.HexColor("#111111"))
+    label_size = 8.5
+    body_size = 9.5
+    line_gap = 3.6 * mm
+
+    c.setFont("Helvetica-Bold", label_size)
+    c.drawString(inner_left, text_top, "TO:")
+    cursor = text_top - line_gap
+    c.setFont("Helvetica-Bold", body_size)
+    for ln in _addr_lines(order):
+        c.drawString(inner_left, cursor, _clip(ln, c, body_size, inner_right - inner_left))
+        cursor -= line_gap
+
+    # ---- FROM block ----
+    cursor -= 2 * mm
+    c.setFont("Helvetica-Bold", label_size)
+    c.setFillColor(colors.HexColor("#6B5A46"))
+    c.drawString(inner_left, cursor, "FROM:")
+    cursor -= line_gap
+    c.setFont("Helvetica-Bold", body_size - 0.5)
+    c.setFillColor(colors.HexColor("#3B2414"))
+    for ln in _company_lines(company):
+        c.drawString(inner_left, cursor, _clip(ln, c, body_size - 0.5, inner_right - inner_left))
+        cursor -= line_gap
+
+    # Order number footer (bottom-right, small)
+    order_no = (order.get("orderNumber") or "").strip()
+    if order_no:
+        c.setFont("Helvetica-Oblique", 7)
+        c.setFillColor(colors.HexColor("#6B5A46"))
+        c.drawRightString(inner_right, inner_bottom, f"#{order_no}")
+
+
+def _clip(text: str, c: canvas.Canvas, font_size: float, max_width: float) -> str:
+    """Truncate `text` with ellipsis if it overflows `max_width` at current font."""
+    if c.stringWidth(text, "Helvetica-Bold", font_size) <= max_width:
+        return text
+    # Progressive shortening
+    ellipsis = "…"
+    while text and c.stringWidth(text + ellipsis, "Helvetica-Bold", font_size) > max_width:
+        text = text[:-1]
+    return (text + ellipsis) if text else ""
+
+
+def _draw_page(c: canvas.Canvas, size: str, orders: list[dict], company: dict, logo):
+    """Layout `orders` on a single page of the given `size`."""
+    if size == "A5":
+        c.setPageSize(A5)
+        page_w, page_h = A5
+        cols, rows = 1, 3
+        margin = 8 * mm
+    else:
+        c.setPageSize(A4)
+        page_w, page_h = A4
+        cols, rows = 2, 3
+        margin = 10 * mm
+
+    gutter = 4 * mm
+    grid_w = page_w - 2 * margin
+    grid_h = page_h - 2 * margin
+    box_w = (grid_w - gutter * (cols - 1)) / cols
+    box_h = (grid_h - gutter * (rows - 1)) / rows
+
+    for i, order in enumerate(orders):
+        r = i // cols
+        col = i % cols
+        # Fill top-to-bottom, left-to-right
+        bx = margin + col * (box_w + gutter)
+        by = page_h - margin - (r + 1) * box_h - r * gutter
+        _draw_box(c, bx, by, box_w, box_h, order, company, logo)
+
+    c.showPage()
+
+
 def build_addresses_pdf(orders: list[dict]) -> bytes:
-    """Print one address per page for each order, separated by solid line
-    with extra spacing. Suitable for shipping labels."""
+    """Build a single PDF containing sticker labels for every order in `orders`.
+    Pages are A5 or A4 per the rule defined in _plan_pages()."""
+    if not orders:
+        return b""
+
     buf = io.BytesIO()
-    doc = SimpleDocTemplate(
-        buf, pagesize=A4,
-        rightMargin=18 * mm, leftMargin=18 * mm,
-        topMargin=18 * mm, bottomMargin=18 * mm,
-        title="Shipping Addresses",
-    )
-    styles = getSampleStyleSheet()
+    c = canvas.Canvas(buf)
+    c.setTitle("Shipping Address Stickers")
+
     company = _company()
+    logo: ImageReader | None = None
+    try:
+        if LOGO_PATH.exists():
+            logo = ImageReader(str(LOGO_PATH))
+    except Exception:
+        logo = None
 
-    title_style = ParagraphStyle(
-        "AddrTitle", parent=styles["Heading2"],
-        fontName="Helvetica-Bold", fontSize=14, spaceAfter=4,
-        textColor=colors.HexColor("#174C2B"),
-    )
-    from_style = ParagraphStyle(
-        "From", parent=styles["Normal"], fontSize=9,
-        textColor=colors.HexColor("#6B5A46"), spaceAfter=8,
-    )
-    to_label = ParagraphStyle(
-        "ToLabel", parent=styles["Normal"], fontSize=10,
-        textColor=colors.HexColor("#6B5A46"),
-        fontName="Helvetica-Bold", spaceAfter=6,
-    )
-    to_body = ParagraphStyle(
-        "ToBody", parent=styles["Normal"], fontSize=13,
-        leading=18, textColor=colors.HexColor("#111111"),
-    )
-    order_ref = ParagraphStyle(
-        "OrderRef", parent=styles["Normal"], fontSize=9,
-        textColor=colors.HexColor("#6B5A46"), spaceBefore=8,
-    )
+    plan = _plan_pages(len(orders))
+    idx = 0
+    for entry in plan:
+        chunk = orders[idx: idx + entry["count"]]
+        idx += entry["count"]
+        _draw_page(c, entry["size"], chunk, company, logo)
 
-    flow = []
-    for idx, order in enumerate(orders):
-        addr = order.get("address", {})
-        block = []
-        block.append(Paragraph(company.get("brandName", "HARIRAM'S"), title_style))
-        block.append(Paragraph(
-            f"{company.get('address','')} &nbsp;|&nbsp; {company.get('customerCare','')}",
-            from_style,
-        ))
-        block.append(HRFlowable(width="100%", color=colors.HexColor("#D89B22"), thickness=1))
-        block.append(Spacer(1, 8 * mm))
-        block.append(Paragraph("SHIP TO:", to_label))
-        lines = [
-            addr.get("name", ""),
-            addr.get("line1", ""),
-        ]
-        if addr.get("line2"): lines.append(addr["line2"])
-        if addr.get("landmark"): lines.append(f"Near {addr['landmark']}")
-        lines.append(f"{addr.get('city','')}, {addr.get('state','')} - {addr.get('pincode','')}")
-        lines.append(f"Phone: +91-{order.get('phone','')}")
-        for ln in lines:
-            block.append(Paragraph(ln, to_body))
-        block.append(Paragraph(
-            f"Order: <b>{order.get('orderNumber','')}</b>",
-            order_ref,
-        ))
-        flow.append(KeepTogether(block))
-
-        # Separator between addresses (except after last)
-        if idx < len(orders) - 1:
-            flow.append(Spacer(1, 14 * mm))
-            flow.append(HRFlowable(width="100%", color=colors.HexColor("#3B2414"), thickness=1.6))
-            flow.append(Spacer(1, 14 * mm))
-
-    doc.build(flow)
+    c.save()
     return buf.getvalue()
 
 
@@ -189,9 +323,6 @@ def build_invoice_pdf(order: dict) -> bytes:
                            textColor=colors.HexColor("#6B5A46"),
                            fontName="Helvetica-Bold", spaceAfter=2)
     body = ParagraphStyle("B", parent=styles["Normal"], fontSize=10, leading=14)
-    big_num = ParagraphStyle("Big", parent=styles["Normal"], fontSize=13,
-                             fontName="Helvetica-Bold",
-                             textColor=colors.HexColor("#174C2B"))
 
     flow.append(Paragraph(company.get("brandName", "HARIRAM S"), h1))
     flow.append(Paragraph(

@@ -159,8 +159,11 @@ export default function AdminPendingOrdersPage() {
           <button data-testid={ADMIN_TID.pendingPrintAddresses}
                   onClick={() => printAddresses(selectedIds)}
                   disabled={busy || selectedIds.length === 0}
-                  className="admin-btn admin-btn-accent">
-            <FileText className="w-4 h-4" /> Print Addresses ({selectedIds.length})
+                  className="admin-btn admin-btn-accent"
+                  title={selectedIds.length === 0
+                    ? "Select at least one order to print address stickers"
+                    : `Generate ${selectedIds.length <= 3 ? "A5" : selectedIds.length <= 6 ? "A4" : "A4 + A5"} sticker PDF`}>
+            <FileText className="w-4 h-4" /> Print Address ({selectedIds.length})
           </button>
           <button data-testid={ADMIN_TID.pendingMarkShipped}
                   onClick={markShipped}

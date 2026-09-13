@@ -5,12 +5,19 @@ export const ADMIN_TID = {
   navItem: (key) => `admin-nav-${key}`,
   logout: "admin-logout",
 
-  // Login
+  // Login (Step 1 - password)
   loginPage: "admin-login-page",
   loginUsername: "admin-login-username",
   loginPassword: "admin-login-password",
   loginSubmit: "admin-login-submit",
   loginError: "admin-login-error",
+
+  // Login (Step 2 - 2FA OTP)
+  loginOtpStage: "admin-login-otp-stage",
+  loginOtpInput: "admin-login-otp-input",
+  loginOtpSubmit: "admin-login-otp-submit",
+  loginOtpBack: "admin-login-otp-back",
+  loginOtpMockHint: "admin-login-otp-mock",
 
   // Dashboard
   dashboardPage: "admin-dashboard-page",
@@ -28,6 +35,9 @@ export const ADMIN_TID = {
   productFormSave: "admin-product-form-save",
   productFormCancel: "admin-product-form-cancel",
   productImageUpload: "admin-product-image-upload",
+  productImageThumb: (idx) => `admin-product-image-thumb-${idx}`,
+  productImageDelete: (idx) => `admin-product-image-delete-${idx}`,
+  productImageSetMain: (idx) => `admin-product-image-setmain-${idx}`,
 
   // Shipping
   shippingPage: "admin-shipping-page",

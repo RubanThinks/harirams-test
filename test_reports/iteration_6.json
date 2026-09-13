@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 6 — validated 3 new admin features end-to-end. Backend pytest suite /app/backend/tests/test_iteration6.py: 15/15 PASSED (2FA challenge/verify/reuse/wrong-otp/unknown-session/jwt-on-protected; multi-image list-normalization + upload + PUT + persistence + delete-image + 6-image trim; address PDF empty=400 / 1-order=A5 / 7-order=multi-page mixed / content-type + %PDF header). Frontend E2E via Playwright: (a) /admin/login two-stage flow — wrong password shows admin-login-error, correct password reveals admin-login-otp-stage with admin-login-otp-mock showing 6-digit OTP; wrong OTP shows error and stays on login; correct OTP navigates to /admin dashboard. (b) /admin/products — Edit HG500, existing thumb-0 has main, uploaded via admin-product-image-upload → thumb-1 appeared, clicked admin-product-image-setmain-1, saved (form closed, 'Product updated' toast), re-opened and confirmed 2 thumbs persisted, deleted one and saved. Row image badge in products list shows count=2 while gallery has 2 images. (c) /admin/orders/pending — bulk 'Print Address (1)' downloaded addresses_1.pdf starting with %PDF; per-row Address button also downloads valid PDF. (d) Storefront regression: landing page loads with title 'Hariram's Pure Cow Ghee — Traditional South Indian Ghee' and 4 products rendered. Seeded 7 CONFIRMED test orders (HR26091326* / HR26091337* / HR26091338* etc.) via public /api/orders + fixed OTP 123456 to unlock the address-PDF multi-page test.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration6.py",
+    "/app/test_reports/pytest/iteration6_results.xml",
+    "/app/backend/tests/_seed_orders.py"
+  ],
+  "action_items": [
+    "Optional cleanup: 7 TEST_ prefixed orders (HR2609132641, HR2609137897, HR2609133774, HR2609134689, HR2609137555, HR2609134790, HR2609133366) were seeded in the `orders` collection with phones 987000000[0-6] to enable the 7-order mixed-page PDF test. They remain in DB — a future teardown fixture could delete them but they are clearly labelled 'TEST Buyer 0..6'.",
+    "Nice-to-have: admin_auth.login uses BRUTE_MAX_ATTEMPTS=5 keyed on (ip+username); passing tests hitting /login with correct password many times don't hit the limiter (only wrong attempts count), but the OTP-session collection admin_otp_sessions accumulates docs that are only deleted on successful verify or wrong-attempts cap. Consider a TTL index on expires_at for automatic cleanup of orphaned sessions."
+  ],
+  "critical_code_review_comments": [
+    "admin_auth.py:181 — attempts counter is incremented BEFORE the equality check, so the FIRST wrong OTP already registers as attempt=1 (fine), but combined with `sess.get('attempts', 0) >= OTP_MAX_ATTEMPTS` (which reads pre-increment value), the effective threshold is 6, not 5. Off-by-one but non-critical.",
+    "admin_products.py:_normalize_images correctly dedupes by URL and enforces single main. Good.",
+    "admin_pdf.py:_plan_pages logic matches spec exactly (verified: 1→A5, 4→A4, 7→A4(6)+A5(1)). Good.",
+    "admin_auth.py:164 — mockOtp field is returned in JSON body; ensure to remove alongside removing MOCK_OTP path when MSG91 is wired (spec-documented mock).",
+    "test_iteration6.py trim_beyond_six restores original state — good hygiene."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration6.py (new)",
+    "/app/backend/tests/_seed_orders.py (new — helper, not a pytest file)"
+  ],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "100% (all 4 flows verified)"},
+  "test_credentials": "admin / Harirams0507 (2FA mock OTP echoed in login response and shown on admin-login-otp-mock). Customer OTP: 123456.",
+  "seed_data_creation": "7 CONFIRMED orders + 1 product image uploaded to storage (soft-deleted after test). Test buyer names prefixed 'TEST Buyer'.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "2FA: POST /api/admin/auth/login returns {otpRequired,sessionId,otpTarget:'+91-9500049550',mockOtp,ttlMinutes:5}; POST /api/admin/auth/verify-otp with {sessionId,otp} returns JWT. Reuse of sessionId after successful verify → 404 (session deleted). Wrong OTP → 401. Multi-image: images:[{url,isMain}] with exactly one main; PUT/POST auto-elect main; delete-image removes and re-elects; max 6 images enforced. Address PDF: POST /api/admin/orders/print-address {orderNumbers:[]} → StreamingResponse application/pdf; empty list=400; page-plan per _plan_pages (A5≤3, A4 4-6, greedy A4-6 pages + remainder). Per-row testid: admin-print-address-{orderNumber}; bulk: admin-pending-print-addresses.",
+  "rca of the issue": "N/A — no bugs found."
+}

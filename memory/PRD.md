@@ -41,6 +41,15 @@ Build a production-ready ecommerce website for Hariram's Pure Cow Ghee — follo
 - **Cart drawer** "Continue Shopping" now scrolls to `#products` on `/` or navigates to `/#products` from other routes
 - **Compacted vertical spacing** in Hero mobile CTA, Benefits strip, Product grid, Footer
 
+### Feb 2026 — Admin console upgrades
+- **Multi-image products**: each product now carries `images: [{url, isMain}]` (max 6). `products.json` keeps `image` as a mirror of the main-flagged URL so the storefront stays untouched. Admin UI has a thumbnail grid with per-image Set-as-Main and Delete controls. New endpoint `POST /admin/products/{sku}/delete-image` also soft-deletes the underlying `product_images` record.
+- **Redesigned address stickers** (`POST /admin/orders/print-address`) — the old single-address-per-page template is gone. New layout: logo top-center, bold TO block (with phone), bold FROM block from `company.json`, thin brown outer border and a gold divider. Page size rules:
+  - `<=3` selected orders → A5 (1 col × 3 rows)
+  - 4–6 → A4 (2 cols × 3 rows)
+  - `>6` → greedy split: fill A4 pages of 6, remainder → A5 if `<=3`, else A4
+  - Delivered as **one PDF with mixed page sizes** (reportlab canvas + `setPageSize` per page).
+- **Admin 2FA** (WhatsApp OTP, mocked): password step returns `{ otpRequired, sessionId, otpTarget, mockOtp, ttlMinutes }`; a second call to `POST /admin/auth/verify-otp` exchanges the OTP for the real JWT. Target phone `+91-9500049550` is hardcoded per spec. Mock OTP is rendered on-screen until MSG91 WhatsApp integration replaces it.
+
 ## Admin Console
 - **Auth**: username `admin` + bcrypt-hashed password in `.env` + JWT (8 h) + brute-force lock (5 attempts / 15 min per ip+username). `POST /api/admin/auth/login`, `GET /api/admin/auth/me`
 - **Products** (`/admin/products`): full CRUD on `products.json`; image upload goes to **Emergent Object Storage** (path `harirams-ghee/uploads/products/{sku}_{uuid}.ext`), tracked in Mongo `product_images`, served via `/api/uploads/products/{filename}`
@@ -61,8 +70,10 @@ Build a production-ready ecommerce website for Hariram's Pure Cow Ghee — follo
 - SEO: product detail pages (`/product/:slug`), JSON-LD, sitemap.xml, robots.txt
 
 ### P1 (Phase 2)
+- **MSG91 WhatsApp OTP for admin 2FA** — currently mocked with `mockOtp` shown on screen. Swap in `admin_auth.py::login` (search for MSG91).
 - Order tracking page + shipping label generator
 - Additional product families (butter, oils) — schema already extensible via `family`
+- **Hover-to-swap storefront images** using the new `images[]` gallery (main = default, sides on hover)
 - Populate Why Hariram's / Recipes / FAQ / Contact markdown with real copy
 - Wishlist, product search improvements
 - Analytics: GA4 + conversion events
