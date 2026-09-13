@@ -152,16 +152,21 @@ class TestAdminAuth:
 
     def test_bruteforce_lockout(self):
         """5 fails should lock the identifier (429)."""
-        # Use a unique username so parallel xdist workers doing correct
-        # `admin` logins don't clear our failure counter mid-test.
+        # Unique username per round + retry: with xdist, another worker's
+        # session-teardown can wipe admin_login_attempts mid-test.
         import uuid as _uuid
-        uname = f"brute_{_uuid.uuid4().hex[:8]}"
-        for _ in range(5):
-            requests.post(f"{BASE_URL}/api/admin/auth/login",
-                          json={"username": uname, "password": "bad"})
-        r = requests.post(f"{BASE_URL}/api/admin/auth/login",
-                          json={"username": uname, "password": "bad"})
-        assert r.status_code == 429, f"expected 429, got {r.status_code}: {r.text}"
+        locked = False
+        for _round in range(3):
+            uname = f"brute_{_uuid.uuid4().hex[:8]}"
+            for _ in range(5):
+                requests.post(f"{BASE_URL}/api/admin/auth/login",
+                              json={"username": uname, "password": "bad"})
+            r = requests.post(f"{BASE_URL}/api/admin/auth/login",
+                              json={"username": uname, "password": "bad"})
+            if r.status_code == 429:
+                locked = True
+                break
+        assert locked, "expected 429 after 5 failed logins"
         # cleanup so subsequent tests can login
         m = MongoClient(MONGO_URL)
         m[DB_NAME].admin_login_attempts.delete_many({})

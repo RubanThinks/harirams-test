@@ -4,12 +4,18 @@ Uses reportlab (server-side, no headless browser).
 
 Address stickers:
   Each box shows the brand LOGO (top, centered), a bold TO block (name / lines /
-  city / phone) and a bold FROM block (company from company.json).
+  city / phone) and a bold FROM block (hardcoded Hariram Home Needs address).
+  Layout is ALWAYS 3 columns so every box keeps the same physical size
+  (~68.7 mm wide) on both sheet sizes — suitable for print/cut/paste:
+    - A5 sheet (landscape): 3 cols x 1 row  = 3 slots
+    - A4 sheet (portrait):  3 cols x 2 rows = 6 slots
   Sizing rule:
-    - <=3 addresses  -> A5 page (1 col x 3 rows = 3 boxes)
-    - 4..6 addresses -> A4 page (2 cols x 3 rows = 6 boxes)
-    - >6 addresses   -> greedy: fill A4 pages of 6 first, remainder on final page
-                         (A5 if <=3, else A4).
+    - <=3 addresses  -> A5 page
+    - 4..6 addresses -> A4 page
+    - >6 addresses   -> greedy: fill A4 pages of 6 first, remainder on final
+                         page (A5 if <=3, else A4).
+  Empty slots are drawn as BLANK bordered boxes (no logo, no address) so the
+  sticker grid stays consistent.
   Deliverable is a single PDF with mixed page sizes.
 """
 import io
@@ -17,7 +23,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from reportlab.lib.pagesizes import A4, A5
+from reportlab.lib.pagesizes import A4, A5, landscape
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import mm
@@ -81,27 +87,35 @@ def _addr_lines(order: dict) -> list[str]:
     return [ln for ln in lines if ln]
 
 
-def _company_lines(company: dict) -> list[str]:
-    lines = [company.get("legalCompanyName") or company.get("brandName") or "HARIRAM'S"]
-    if company.get("address"): lines.append(company["address"])
-    if company.get("customerCare"): lines.append(f"Ph : {company['customerCare']}")
-    return lines
+# Hardcoded FROM address per spec (exact line breaks preserved).
+FROM_ADDRESS_LINES = [
+    "Hariram Home Needs,",
+    "B12, Sidharth Apartment,",
+    "Balakrishnan Street,",
+    "West Mambalam,",
+    "Chennai - 600033",
+    "Ph : 9500021456",
+]
 
 
 def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
-              order: dict, company: dict, logo: ImageReader | None):
+              order: dict | None, logo: ImageReader | None):
     """Draw one address sticker inside the rectangle at (x, y) with size (w, h).
-    (x, y) is the BOTTOM-LEFT corner of the box in points."""
+    (x, y) is the BOTTOM-LEFT corner of the box in points.
+    order=None draws a BLANK box (border only — keeps the sticker grid)."""
     inset = 4 * mm
     inner_left = x + inset
     inner_right = x + w - inset
     inner_top = y + h - inset
     inner_bottom = y + inset
 
-    # Outer border
+    # Outer border (always drawn, even for blank slots)
     c.setStrokeColor(colors.HexColor("#3B2414"))
     c.setLineWidth(0.8)
     c.rect(x + 1 * mm, y + 1 * mm, w - 2 * mm, h - 2 * mm, stroke=1, fill=0)
+
+    if order is None:
+        return  # blank slot — no logo, no address
 
     # Logo (top-center)
     logo_max_h = min(18 * mm, h * 0.22)
@@ -133,9 +147,9 @@ def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
     # ---- TO block ----
     text_top = div_y - 3 * mm
     c.setFillColor(colors.HexColor("#111111"))
-    label_size = 8.5
-    body_size = 9.5
-    line_gap = 3.6 * mm
+    label_size = 9
+    body_size = 10.5
+    line_gap = 4.2 * mm
 
     c.setFont("Helvetica-Bold", label_size)
     c.drawString(inner_left, text_top, "TO:")
@@ -145,7 +159,7 @@ def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
         c.drawString(inner_left, cursor, _clip(ln, c, body_size, inner_right - inner_left))
         cursor -= line_gap
 
-    # ---- FROM block ----
+    # ---- FROM block (hardcoded) ----
     cursor -= 2 * mm
     c.setFont("Helvetica-Bold", label_size)
     c.setFillColor(colors.HexColor("#6B5A46"))
@@ -153,7 +167,7 @@ def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
     cursor -= line_gap
     c.setFont("Helvetica-Bold", body_size - 0.5)
     c.setFillColor(colors.HexColor("#3B2414"))
-    for ln in _company_lines(company):
+    for ln in FROM_ADDRESS_LINES:
         c.drawString(inner_left, cursor, _clip(ln, c, body_size - 0.5, inner_right - inner_left))
         cursor -= line_gap
 
@@ -176,32 +190,34 @@ def _clip(text: str, c: canvas.Canvas, font_size: float, max_width: float) -> st
     return (text + ellipsis) if text else ""
 
 
-def _draw_page(c: canvas.Canvas, size: str, orders: list[dict], company: dict, logo):
-    """Layout `orders` on a single page of the given `size`."""
+def _draw_page(c: canvas.Canvas, size: str, orders: list[dict], logo):
+    """Layout `orders` on a single page of the given `size`.
+
+    ALWAYS 3 columns, so each box is ~68.7 mm wide on both sheet sizes
+    (A4 portrait 210 mm, A5 landscape 210 mm). Empty slots are drawn as
+    blank bordered boxes to keep the sticker grid intact for cutting."""
+    margin = 2 * mm
     if size == "A5":
-        c.setPageSize(A5)
-        page_w, page_h = A5
-        cols, rows = 1, 3
-        margin = 8 * mm
+        page_w, page_h = landscape(A5)  # 210 mm x 148 mm
+        c.setPageSize((page_w, page_h))
+        cols, rows = 3, 1
     else:
+        page_w, page_h = A4  # 210 mm x 297 mm (portrait)
         c.setPageSize(A4)
-        page_w, page_h = A4
-        cols, rows = 2, 3
-        margin = 10 * mm
+        cols, rows = 3, 2
 
-    gutter = 4 * mm
-    grid_w = page_w - 2 * margin
-    grid_h = page_h - 2 * margin
-    box_w = (grid_w - gutter * (cols - 1)) / cols
-    box_h = (grid_h - gutter * (rows - 1)) / rows
+    box_w = (page_w - 2 * margin) / cols
+    box_h = (page_h - 2 * margin) / rows
 
-    for i, order in enumerate(orders):
+    total_slots = cols * rows
+    for i in range(total_slots):
+        order = orders[i] if i < len(orders) else None
         r = i // cols
         col = i % cols
         # Fill top-to-bottom, left-to-right
-        bx = margin + col * (box_w + gutter)
-        by = page_h - margin - (r + 1) * box_h - r * gutter
-        _draw_box(c, bx, by, box_w, box_h, order, company, logo)
+        bx = margin + col * box_w
+        by = page_h - margin - (r + 1) * box_h
+        _draw_box(c, bx, by, box_w, box_h, order, logo)
 
     c.showPage()
 
@@ -216,7 +232,6 @@ def build_addresses_pdf(orders: list[dict]) -> bytes:
     c = canvas.Canvas(buf)
     c.setTitle("Shipping Address Stickers")
 
-    company = _company()
     logo: ImageReader | None = None
     try:
         if LOGO_PATH.exists():
@@ -229,7 +244,7 @@ def build_addresses_pdf(orders: list[dict]) -> bytes:
     for entry in plan:
         chunk = orders[idx: idx + entry["count"]]
         idx += entry["count"]
-        _draw_page(c, entry["size"], chunk, company, logo)
+        _draw_page(c, entry["size"], chunk, logo)
 
     c.save()
     return buf.getvalue()

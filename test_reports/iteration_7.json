@@ -1,0 +1,36 @@
+{
+  "summary": "Verified BUG FIX 1 (always 3-column layout, A5 landscape for <=3, A4 portrait for 4-6, mixed pages for >6, empty slots as blank bordered boxes) and BUG FIX 2 (hardcoded 6-line FROM address 'Hariram Home Needs / B12, Sidharth Apartment / Balakrishnan Street / West Mambalam / Chennai - 600033 / Ph : 9500021456'). Wrote new pytest suite test_iteration7_address_pdf.py using pypdf + pdfplumber to inspect mediabox sizes, per-page text extraction (counting FROM-line occurrences per filled slot vs blank slot), and image XObject presence. Ran full frontend regression against admin 2FA login + per-row and bulk 'Print Address' buttons on /admin/orders/pending. All 13 new backend tests pass. Frontend flow works end-to-end.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "AdminPendingOrdersPage table rows", "issue": "React console warning: 'Encountered two children with the same key HR2609131318' — duplicate order-number key when rendering rows. Non-blocking but should be fixed to keep list stable (probably re-using orderNumber as key while two seeded orders share the same number, or a stray duplicate in DB). Reproduce: open /admin/orders/pending — warning fires in browser console.", "selector": "[data-testid=\"admin-pending-row-HR2609131318\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration7_address_pdf.py",
+    "/app/test_reports/pytest/iteration7_results.xml"
+  ],
+  "action_items": [
+    "Optional: fix React duplicate-key warning on /admin/orders/pending (order HR2609131318 appears to have a duplicate row / repeated key)."
+  ],
+  "critical_code_review_comments": [
+    "admin_pdf.py: _company() is still imported/used only by pending & invoice PDFs. FROM_ADDRESS_LINES is correctly hardcoded — good. Consider extracting it into config/company.json under a new field like 'shippingFromLines' so admins can edit without redeploy (not required for this bug).",
+    "admin_pdf.py _draw_box: logo image is redrawn per filled slot; reportlab dedupes the XObject so the resulting PDF is small — verified (PdfReader shows 1 image XObject per page even when 3 filled slots).",
+    "admin_pdf.py: If order['phone'] is missing, TO block omits phone line silently; ok."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration7_address_pdf.py"
+  ],
+  "success_rate": {"backend": "100% (13/13 new + prior 117/117 unchanged)", "frontend": "100% (login+2FA, per-row PDF download, bulk PDF download)"},
+  "test_credentials": "admin / Harirams0507 + mock OTP echoed in login response and shown via data-testid admin-login-otp-mock",
+  "seed_data_creation": "None — reused existing 62 CONFIRMED orders in DB from prior iterations. Tests dynamically pull first N via GET /api/admin/orders/pending.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iteration7_address_pdf.py extends iteration_6 coverage with structural PDF assertions: mediabox sizes (A5 landscape 595.28x419.53pt, A4 portrait 595.28x841.89pt), FROM-line frequency per page (should equal number of filled slots), and blank-slot leakage check (single order -> FROM appears exactly once). If order count in DB < 7 in future runs, test_seven_orders_a4_plus_a5 will skip; seed more CONFIRMED orders via /api/orders storefront flow to re-enable.",
+  "rca of the issue": "Not a bug this iteration — both fixes verified working. Prior wrong output was due to (a) A5 being portrait instead of landscape and (b) FROM being read from company.json giving a slightly different multi/single-line variant. New _draw_page always sets cols=3 and A5=landscape(A5); FROM_ADDRESS_LINES is a module-level constant so no config drift."
+}

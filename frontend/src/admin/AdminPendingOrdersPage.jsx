@@ -203,7 +203,7 @@ export default function AdminPendingOrdersPage() {
               {orders.map((o) => {
                 const totalQty = (o.items || []).reduce((s, i) => s + i.quantity, 0);
                 return (
-                  <tr key={o.orderNumber} data-testid={ADMIN_TID.pendingRow(o.orderNumber)}>
+                  <tr key={o.id || o.orderNumber} data-testid={ADMIN_TID.pendingRow(o.orderNumber)}>
                     <td>
                       <input data-testid={ADMIN_TID.pendingCheckbox(o.orderNumber)}
                              type="checkbox" checked={!!selected[o.orderNumber]}

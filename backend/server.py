@@ -396,10 +396,14 @@ class Order(BaseModel):
     created_at: str
 
 
-def _order_number() -> str:
+async def _order_number() -> str:
+    """Collision-safe order number (HR + yyMMdd + 4 random digits)."""
     ts = datetime.now(timezone.utc).strftime("%y%m%d")
-    rand = random.randint(1000, 9999)
-    return f"HR{ts}{rand}"
+    for _ in range(10):
+        candidate = f"HR{ts}{random.randint(1000, 9999)}"
+        if not await db.orders.find_one({"orderNumber": candidate}, {"_id": 1}):
+            return candidate
+    return f"HR{ts}{random.randint(100000, 999999)}"
 
 
 @api.post("/orders")
@@ -418,7 +422,7 @@ async def create_order(req: CreateOrderRequest):
     payment_status = "PAID"
 
     order = Order(
-        orderNumber=_order_number(),
+        orderNumber=await _order_number(),
         phone=phone,
         name=req.address.name,
         address=req.address,
