@@ -100,6 +100,12 @@ Build a production-ready ecommerce website for Hariram's Pure Cow Ghee — follo
 ## Test credentials
 See `/app/memory/test_credentials.md`. OTP: **123456** (mocked, any 10-digit phone).
 
+### Feb 2026 — Production data cleanup
+- **Root cause of dummy orders in prod**: preview and deployed production use **separate MongoDB instances**; test orders accumulated in the production DB during earlier testing of the deployed URL. Preview DB fully purged (111 orders + OTP state).
+- **New admin-only purge endpoint**: `POST /api/admin/orders/purge` (admin JWT + body `{"confirm":"DELETE_ALL_ORDERS"}`) deletes all `orders`, `otp_requests`, `admin_otp_sessions`. Verified on preview (deleted counts returned, pending=0 after).
+- **BLOCKER fixed**: `ADMIN_PASSWORD_HASH` in `backend/.env` switched to single quotes so `$` chars in the bcrypt hash can't be shell-expanded during K8s env injection. Deployment agent: PASS.
+- **PENDING**: user must **Republish** so the purge endpoint exists on https://hariram-ghee-shop.emergent.host/, then run purge against production (90 pending + 80 completed orders confirmed live).
+
 ## Deployment notes
 - Backend runs on 0.0.0.0:8001 via supervisor.
 - Frontend uses `REACT_APP_BACKEND_URL` for API calls.

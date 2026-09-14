@@ -40,6 +40,10 @@ class PrintAddressesRequest(BaseModel):
     orderNumbers: List[str]
 
 
+class PurgeOrdersRequest(BaseModel):
+    confirm: str
+
+
 def _sort_orders(orders: list[dict], sort: str, direction: str) -> list[dict]:
     reverse = direction.lower() == "desc"
     if sort == "city":
@@ -95,6 +99,25 @@ def register(api: APIRouter, db):
         _: dict = Depends(require_admin),
     ):
         return await _completed_orders(from_date, to_date)
+
+    @router.post("/purge")
+    async def purge_orders(req: PurgeOrdersRequest, admin=Depends(require_admin)):
+        """Delete ALL orders + transient OTP state. Requires the exact
+        confirmation string so it can't be triggered by accident."""
+        if req.confirm != "DELETE_ALL_ORDERS":
+            raise HTTPException(status_code=400, detail='Confirmation string must be "DELETE_ALL_ORDERS"')
+        orders = await db.orders.delete_many({})
+        otps = await db.otp_requests.delete_many({})
+        sessions = await db.admin_otp_sessions.delete_many({})
+        return {
+            "success": True,
+            "deleted": {
+                "orders": orders.deleted_count,
+                "otp_requests": otps.deleted_count,
+                "admin_otp_sessions": sessions.deleted_count,
+            },
+            "by": admin.get("sub"),
+        }
 
     @router.post("/mark-shipped")
     async def mark_shipped(req: MarkShippedRequest, admin=Depends(require_admin)):

@@ -1,0 +1,36 @@
+{
+  "summary": "Bug-verification pass for order purge. FINDING: The purge only cleaned the PREVIEW MongoDB (localhost/test_database), not the DEPLOYED production database. The deployed URL https://hariram-ghee-shop.emergent.host STILL shows 90 pending + 80 completed test orders. The main agent's stated premise ('production deployment shares the same MongoDB as the preview backend') is FALSE. On the preview URL (which does use the local Mongo that was purged), all checks pass: 0 pending, 0 completed, storefront loads, products render, a new COD order (HR2609147848) placed end-to-end and appeared in admin pending — proving order creation still works post-purge.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "GET /api/admin/orders/pending (deployed https://hariram-ghee-shop.emergent.host)", "issue": "Returns count=90 test orders (Notify Test, TEST User, Admin TestBuyer A, E2E Check, etc.) — the purge did NOT reach the production DB. Customer order history for those phone numbers is still leaking on the live site.", "priority": "CRITICAL"},
+      {"endpoint": "GET /api/admin/orders/completed (deployed)", "issue": "Returns count=80 legacy/test completed orders on production.", "priority": "CRITICAL"}
+    ],
+    "minor": [
+      {"endpoint": "GET /api/admin/dashboard/stats (preview)", "issue": "Returns 404 Not Found — either endpoint path is different or not implemented; verify actual dashboard-stats route name."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Preview and deployed production run against DIFFERENT MongoDB instances. Re-run the purge against the PRODUCTION MongoDB used by hariram-ghee-shop.emergent.host (orders, otp_requests, admin_otp_sessions collections). Locate its MONGO_URL / cluster credentials via the deployment/hosting config, not localhost:27017.",
+    "After purging the production DB, re-verify: GET /api/admin/orders/pending and /completed on the deployed URL must both return count=0.",
+    "Confirm the correct admin dashboard-stats endpoint path; /api/admin/dashboard/stats returned 404 on preview.",
+    "Consider adding a build-time / seeding guard so future dev/test orders cannot be inserted into the production DB (env-based DB isolation or a NODE_ENV/APP_ENV check that blocks seeding when env=production)."
+  ],
+  "critical_code_review_comments": [
+    "Root cause of leak is deployment architecture: preview and production apparently point to different Mongo clusters, but there is no automated guard preventing test data creation against the production one. Add a config-level assert that refuses to run seed / dev endpoints when DB_NAME==production DB.",
+    "Test data was seeded with recognizable prefixes (TEST User, Notify Test, Admin TestBuyer A) — good; a scheduled cleanup job filtering by these prefixes would prevent recurrence."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "50% (preview purge OK, deployed purge NOT DONE)", "frontend": "not tested via UI - backend contract verified"},
+  "test_credentials": "admin / Harirams0507 + echoed mockOtp from step-1 login response",
+  "seed_data_creation": "One COD regression order placed on PREVIEW URL only: orderNumber HR2609147848, name TEST_Regression_Purge, phone 9999900001, total 595. Safe to delete.",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "The deployed production DB is a SEPARATE Mongo instance from localhost:27017. Do NOT assume `mongosh` against localhost affects the deployed site. Verify by hitting https://hariram-ghee-shop.emergent.host/api/admin/orders/pending directly — as of this run it still returns 90 test orders. Preview URL (hariram-ghee-shop.preview.emergentagent.com) uses the local Mongo and is currently clean (0 pending, 0 completed except the single regression order HR2609147848 which can be deleted).",
+  "rca of the issue": "The MongoDB shell cleanup ran against localhost:27017/test_database, which is only bound to the preview backend container. The deployed production backend at hariram-ghee-shop.emergent.host connects to a different (hosted) MongoDB whose MONGO_URL is set in the production deployment environment — not in /app/backend/.env. Therefore 170 test-order documents (90 pending + 80 completed) are still visible on the live admin console and to any customer whose phone matches those historical orders. Mitigation: obtain the production MONGO_URL from the deployment config and re-run: db.orders.deleteMany({}), db.otp_requests.deleteMany({}), db.admin_otp_sessions.deleteMany({}). Then hit /api/admin/orders/pending on the deployed URL to confirm count=0."
+}
