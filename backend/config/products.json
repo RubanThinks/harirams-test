@@ -1,13 +1,69 @@
 {
   "products": [
     {
-      "sku": "HG1000",
+      "sku": "HG200",
       "name": "Pure Cow Ghee",
-      "variant": "1000 ml",
-      "price": 699.0,
+      "variant": "200 ml",
+      "price": 199.0,
       "mrp": 0.0,
       "description": "",
       "idealFor": "",
+      "image": "/api/uploads/products/HG200_f0cd8c7f.jpg",
+      "images": [
+        {
+          "url": "/api/uploads/products/HG200_f0cd8c7f.jpg",
+          "isMain": true
+        },
+        {
+          "url": "/api/uploads/products/HG200_a13a3159.jpg",
+          "isMain": false
+        },
+        {
+          "url": "/api/uploads/products/HG200_8b68c066.jpg",
+          "isMain": false
+        }
+      ],
+      "bestSeller": false,
+      "available": false,
+      "displaySequence": 1,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG500",
+      "name": "Pure Cow Ghee",
+      "variant": "500 ml",
+      "price": 555.0,
+      "mrp": 770.0,
+      "description": "",
+      "idealFor": "",
+      "image": "/api/uploads/products/HG500_3b8d638b.jpg",
+      "images": [
+        {
+          "url": "/api/uploads/products/HG500_3b8d638b.jpg",
+          "isMain": true
+        },
+        {
+          "url": "/api/uploads/products/HG500_91603563.jpg",
+          "isMain": false
+        },
+        {
+          "url": "/api/uploads/products/HG500_429e0258.jpg",
+          "isMain": false
+        }
+      ],
+      "bestSeller": true,
+      "available": true,
+      "displaySequence": 2,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG1000",
+      "name": "Pure Cow Ghee",
+      "variant": "1000 ml",
+      "price": 977.0,
+      "mrp": 1400.0,
+      "description": "",
+      "idealFor": "Families",
       "image": "/api/uploads/products/HG1000_8abd9bab.jpg",
       "images": [
         {
@@ -36,55 +92,75 @@
       "mrp": 0.0,
       "description": "",
       "idealFor": "",
-      "image": "/assets/products/ghee_bottle.webp",
+      "image": "/api/uploads/products/HG5000_be9adfea.jpg",
       "images": [
         {
-          "url": "/assets/products/ghee_bottle.webp",
+          "url": "/api/uploads/products/HG5000_be9adfea.jpg",
           "isMain": true
+        },
+        {
+          "url": "/api/uploads/products/HG5000_ed334c32.jpg",
+          "isMain": false
+        },
+        {
+          "url": "/api/uploads/products/HG5000_27a9001b.jpg",
+          "isMain": false
         }
       ],
       "bestSeller": false,
-      "available": true,
-      "displaySequence": 4,
+      "available": false,
+      "displaySequence": 5,
       "family": "ghee"
     },
     {
-      "sku": "HG500",
+      "sku": "HG100",
       "name": "Pure Cow Ghee",
-      "variant": "500 ml",
-      "price": 399.0,
-      "mrp": null,
+      "variant": "100 ml",
+      "price": 100.0,
+      "mrp": 100.0,
       "description": "",
-      "idealFor": "",
-      "image": "/api/uploads/products/HG500_28f62958.jpg",
+      "idealFor": "Temple offering",
+      "image": "/api/uploads/products/HG100_ef98755e.jpg",
       "images": [
         {
-          "url": "/api/uploads/products/HG500_28f62958.jpg",
+          "url": "/api/uploads/products/HG100_ef98755e.jpg",
           "isMain": true
+        },
+        {
+          "url": "/api/uploads/products/HG100_e7b6ed6c.jpg",
+          "isMain": false
+        },
+        {
+          "url": "/api/uploads/products/HG100_c3b2a964.jpg",
+          "isMain": false
         }
       ],
       "bestSeller": false,
-      "available": true,
+      "available": false,
       "displaySequence": 999,
       "family": "ghee"
     },
     {
-      "sku": "HG200",
+      "sku": "HG15K",
       "name": "Pure Cow Ghee",
-      "variant": "200 ml",
-      "price": 199.0,
-      "mrp": null,
+      "variant": "15 Lt",
+      "price": 15000.0,
+      "mrp": 15001.0,
       "description": "",
-      "idealFor": "",
-      "image": "/assets/products/ghee_bottle.webp",
+      "idealFor": "Functions",
+      "image": "/api/uploads/products/HG15K_225104c5.jpg",
       "images": [
         {
-          "url": "/assets/products/ghee_bottle.webp",
+          "url": "/api/uploads/products/HG15K_225104c5.jpg",
           "isMain": true
+        },
+        {
+          "url": "/api/uploads/products/HG15K_3188a184.jpg",
+          "isMain": false
         }
       ],
       "bestSeller": false,
-      "available": true,
+      "available": false,
       "displaySequence": 999,
       "family": "ghee"
     }
