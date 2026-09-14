@@ -43,13 +43,19 @@ Build a production-ready ecommerce website for Hariram's Pure Cow Ghee — follo
 
 ### Feb 2026 — Admin console upgrades
 - **Multi-image products**: each product now carries `images: [{url, isMain}]` (max 6). `products.json` keeps `image` as a mirror of the main-flagged URL so the storefront stays untouched. Admin UI has a thumbnail grid with per-image Set-as-Main and Delete controls. New endpoint `POST /admin/products/{sku}/delete-image` also soft-deletes the underlying `product_images` record.
-- **Redesigned address stickers** (`POST /admin/orders/print-address`) — the old single-address-per-page template is gone. Layout: logo top-center, bold TO block (with phone), bold FROM block **hardcoded** (Hariram Home Needs / B12, Sidharth Apartment / Balakrishnan Street / West Mambalam / Chennai - 600033 / Ph : 9500021456), thin brown outer border and a gold divider. **Always 3 columns** so every box is ~68.7 mm wide for print/cut/paste:
+- **Redesigned address stickers** (`POST /admin/orders/print-address`) — the old single-address-per-page template is gone. Layout: logo top-center, bold TO block (with phone), bold FROM block **hardcoded and bottom-aligned to the sticker** (Hariram Home Needs / B12, Sidharth Apartment / Balakrishnan Street / West Mambalam / Chennai - 600033 / Ph : 9500021456), thin brown outer border and a gold divider. **Always 3 columns** so every box is ~68.7 mm wide for print/cut/paste:
   - A5 **landscape** = 3 cols × 1 row (3 slots)
   - A4 portrait = 3 cols × 2 rows (6 slots)
   - Empty slots are drawn as **blank bordered boxes** (no logo, no address) to keep the sticker grid intact
   - Page selection: `<=3` → A5, 4–6 → A4, `>6` → greedy A4 pages of 6 + remainder (A5 if `<=3`, else A4)
   - Delivered as **one PDF with mixed page sizes** (reportlab canvas + `setPageSize` per page).
-- **Admin 2FA** (WhatsApp OTP, mocked): password step returns `{ otpRequired, sessionId, otpTarget, mockOtp, ttlMinutes }`; a second call to `POST /admin/auth/verify-otp` exchanges the OTP for the real JWT. Target phone `+91-9500049550` is hardcoded per spec. Mock OTP is rendered on-screen until MSG91 WhatsApp integration replaces it.
+- **Admin 2FA** (WhatsApp OTP via MSG91, falls back to MOCK): password step returns `{ otpRequired, sessionId, otpTarget, ttlMinutes, mock, [mockOtp] }`; a second call to `POST /admin/auth/verify-otp` exchanges the OTP for the real JWT. Target phone `+91-9500049550` is hardcoded per spec. `mockOtp` is only echoed when `MSG91_ADMIN_TEMPLATE_ID` is empty.
+
+### Feb 2026 — Storefront upgrades
+- **Razorpay TEST payments** wired end-to-end. New backend routes `/api/payments/razorpay/{config,create-order,verify}` (HMAC-SHA256 signature verification). `checkout.razorpay.com/v1/checkout.js` loaded from `public/index.html`. Checkout flow: UPI/CARD/NETBANKING open the Razorpay modal and only place the local order after signature verification succeeds; COD bypasses the gateway.
+- **MSG91 WhatsApp OTP** helper (`backend/msg91.py`) uses MSG91's v5/otp hosted endpoints so MSG91 handles OTP generation, storage and verification. Falls back to MOCK (fixed OTP `123456` for customers, echoed OTP for admin 2FA) when the corresponding `MSG91_TEMPLATE_ID` / `MSG91_ADMIN_TEMPLATE_ID` env var is empty.
+- **Multi-image hover on product cards** (`ProductGrid.jsx`): main image shows by default; mouseover/focus reveals side images, cycling every 1.4 s while the pointer is on the card; leaving the card restores the main image. Small progress dots indicate active image.
+- **GST update** in `company.json` → `33DDOPS8117L2ZV`.
 
 ## Admin Console
 - **Auth**: username `admin` + bcrypt-hashed password in `.env` + JWT (8 h) + brute-force lock (5 attempts / 15 min per ip+username). `POST /api/admin/auth/login`, `GET /api/admin/auth/me`

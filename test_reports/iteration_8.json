@@ -1,0 +1,34 @@
+{
+  "summary": "Iteration 8 backend testing focused on Razorpay integration, MSG91 WhatsApp OTP (MOCK mode), admin 2FA, company GST update, product images, admin address-label PDF, and end-to-end order regression. Created /app/backend/tests/test_iteration8.py with 17 tests. When run in isolation, all 17 pass. When run as part of the full backend suite (147 tests), 1 test fails: HG500 currently has only 1 image in the DB (review said it should have 3). No code bugs found — Razorpay HMAC verify, create-order with real Razorpay API, MSG91 MOCK fallback, admin JWT exchange, address PDF (POST /admin/orders/print-address), and full order flow are all working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/products (HG500)", "issue": "Review request states HG500 has 3 images to demonstrate multi-image hover cycling, but GET /api/products currently returns HG500 with only 1 image ([{url:'/api/uploads/products/HG500_28f62958.jpg', isMain:true}]). Data seed / upload appears missing in this preview env. Frontend hover-cycling code path cannot be validated for HG500 until >=2 images are attached via /api/admin/products/HG500/images (or by seeding config/products data)."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration8.py",
+    "/app/test_reports/pytest/iteration8_results.xml"
+  ],
+  "action_items": [
+    "Attach >=2 images (ideally 3) to product HG500 so the ProductGrid multi-image hover feature can be validated. Use admin UI or POST /api/admin/products/HG500/images with two additional image files. Or seed via startup fixture so preview env always has HG500 with 3 images."
+  ],
+  "critical_code_review_comments": [
+    "payments.py verify endpoint correctly uses hmac.compare_digest (constant-time) — good.",
+    "payments.py create-order maps INR to paise via int(round(amount*100)) — safe for typical amounts.",
+    "msg91.py MOCK fallback returns fixed 123456 for customer OTP — makes automation easy; server.py stores it in db.otp_requests when mock=True. Good.",
+    "admin_auth.py: mockOtp is only echoed when not live (msg91_is_configured('admin') is False). Once MSG91_ADMIN_TEMPLATE_ID is set, echo disappears. Correct behavior.",
+    "admin_auth.py verify-otp: attempts increment BEFORE compare — 5th wrong attempt trips lockout correctly. Ok.",
+    "server.py /orders: allows re-use of a verified OTP for multiple orders because otp_requests.verified is not reset after order creation. Consider single-use semantics for stronger safety (LOW priority).",
+    "admin_orders.py print-address returns 404 when none match, and preserves requested order — good."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration8.py"],
+  "success_rate": {"backend": "146/147 (99.3%) in full suite; 17/17 (100%) in iteration8 suite when run in isolation"},
+  "test_credentials": "admin / Harirams0507 (mock OTP echoed as mockOtp in login response). Customer OTP = 123456 in MOCK mode for any 10-digit phone.",
+  "seed_data_creation": "None. Test order flow generates new random phone numbers and orders per run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iteration8.py covers: Razorpay config/create-order/verify (HMAC-SHA256 signature construction with RAZORPAY_KEY_SECRET), MSG91 MOCK customer OTP (hint contains 123456), admin 2FA login->mockOtp->verify-otp->JWT, company GST=33DDOPS8117L2ZV, product image arrays, admin PDF via POST /admin/orders/print-address {orderNumbers:[...]}, end-to-end order creation. Note: the review request references GET /api/admin/orders/pending/addresses-pdf?ids=... but the actual endpoint is POST /api/admin/orders/print-address with a JSON body — verified functionality is equivalent (returns application/pdf). The HG500 multi-image assertion is data-dependent; if run in a suite where iteration6 previously uploaded images, it may pass; ensure seed persistence before re-asserting.",
+  "rca of the issue": "HG500 image count discrepancy: The review request claims HG500 has 3 images, but the live products endpoint returns only 1. Root cause is missing seed/upload — the previous multi-image data was either never persisted or was overwritten by iteration6 tests (test_trim_beyond_six_images / put_product replaces images list). Mitigation: main agent should upload 2 extra images to HG500 via /api/admin/products/HG500/images so the ProductGrid hover-cycle can be demonstrated, and/or make the seed idempotent."
+}

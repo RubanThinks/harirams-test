@@ -144,7 +144,7 @@ def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
     c.setLineWidth(0.6)
     c.line(inner_left, div_y, inner_right, div_y)
 
-    # ---- TO block ----
+    # ---- TO block (top-aligned) ----
     text_top = div_y - 3 * mm
     c.setFillColor(colors.HexColor("#111111"))
     label_size = 9
@@ -159,17 +159,24 @@ def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
         c.drawString(inner_left, cursor, _clip(ln, c, body_size, inner_right - inner_left))
         cursor -= line_gap
 
-    # ---- FROM block (hardcoded) ----
-    cursor -= 2 * mm
+    # ---- FROM block (hardcoded, BOTTOM-aligned inside the box) ----
+    # Compute total block height: 1 label line + N address lines, then draw
+    # starting from the bottom of the sticker so the FROM group hugs the base.
+    footer_reserve = 4 * mm  # leaves space for the order-number footer
+    from_block_lines = 1 + len(FROM_ADDRESS_LINES)  # label + address lines
+    from_block_height = from_block_lines * line_gap
+    from_baseline_top = inner_bottom + footer_reserve + from_block_height - line_gap
+    from_cursor = from_baseline_top
+
     c.setFont("Helvetica-Bold", label_size)
     c.setFillColor(colors.HexColor("#6B5A46"))
-    c.drawString(inner_left, cursor, "FROM:")
-    cursor -= line_gap
+    c.drawString(inner_left, from_cursor, "FROM:")
+    from_cursor -= line_gap
     c.setFont("Helvetica-Bold", body_size - 0.5)
     c.setFillColor(colors.HexColor("#3B2414"))
     for ln in FROM_ADDRESS_LINES:
-        c.drawString(inner_left, cursor, _clip(ln, c, body_size - 0.5, inner_right - inner_left))
-        cursor -= line_gap
+        c.drawString(inner_left, from_cursor, _clip(ln, c, body_size - 0.5, inner_right - inner_left))
+        from_cursor -= line_gap
 
     # Order number footer (bottom-right, small)
     order_no = (order.get("orderNumber") or "").strip()

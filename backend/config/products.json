@@ -1,31 +1,39 @@
 {
   "products": [
     {
-      "sku": "HG5000",
-      "name": "Pure Cow Ghee",
-      "variant": "5 Litre",
-      "price": 3299.0,
-      "mrp": null,
-      "description": "",
-      "idealFor": "",
-      "image": "/assets/products/ghee_bottle.webp",
-      "images": [
-        {
-          "url": "/assets/products/ghee_bottle.webp",
-          "isMain": true
-        }
-      ],
-      "bestSeller": false,
-      "available": true,
-      "displaySequence": 999,
-      "family": "ghee"
-    },
-    {
       "sku": "HG1000",
       "name": "Pure Cow Ghee",
       "variant": "1000 ml",
       "price": 699.0,
-      "mrp": null,
+      "mrp": 0.0,
+      "description": "",
+      "idealFor": "",
+      "image": "/api/uploads/products/HG1000_8abd9bab.jpg",
+      "images": [
+        {
+          "url": "/api/uploads/products/HG1000_8abd9bab.jpg",
+          "isMain": true
+        },
+        {
+          "url": "/api/uploads/products/HG1000_7f76659a.jpg",
+          "isMain": false
+        },
+        {
+          "url": "/api/uploads/products/HG1000_39258726.jpg",
+          "isMain": false
+        }
+      ],
+      "bestSeller": false,
+      "available": true,
+      "displaySequence": 3,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG5000",
+      "name": "Pure Cow Ghee",
+      "variant": "5 Litre",
+      "price": 3299.0,
+      "mrp": 0.0,
       "description": "",
       "idealFor": "",
       "image": "/assets/products/ghee_bottle.webp",
@@ -37,7 +45,7 @@
       ],
       "bestSeller": false,
       "available": true,
-      "displaySequence": 999,
+      "displaySequence": 4,
       "family": "ghee"
     },
     {
@@ -48,14 +56,14 @@
       "mrp": null,
       "description": "",
       "idealFor": "",
-      "image": "/assets/products/ghee_bottle.webp",
+      "image": "/api/uploads/products/HG500_28f62958.jpg",
       "images": [
         {
-          "url": "/assets/products/ghee_bottle.webp",
+          "url": "/api/uploads/products/HG500_28f62958.jpg",
           "isMain": true
         }
       ],
-      "bestSeller": true,
+      "bestSeller": false,
       "available": true,
       "displaySequence": 999,
       "family": "ghee"

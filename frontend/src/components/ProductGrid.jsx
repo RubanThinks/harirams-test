@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ShoppingCart, Star, HandHeart, Users, Utensils, Building2 } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
@@ -6,12 +6,99 @@ import { formatINR } from "@/lib/format";
 import { TESTIDS } from "@/constants/testIds";
 
 const IDEAL_ICONS = [HandHeart, Users, Utensils, Building2];
+const HOVER_CYCLE_MS = 1400;
 
-function PackBadge({ variant, index }) {
+function PackBadge({ variant }) {
   const isFiveLitre = /5\s*L/i.test(variant);
   return (
     <div className={`pack-badge ${isFiveLitre ? "blue" : ""}`}>
       {variant}
+    </div>
+  );
+}
+
+/**
+ * Builds an ordered list of image URLs for a product with the main image first.
+ * Falls back to the legacy singular `image` field if `images[]` is empty.
+ */
+function getGallery(product) {
+  const list = Array.isArray(product.images) ? product.images.filter((i) => i?.url) : [];
+  if (list.length === 0) {
+    return product.image ? [product.image] : [];
+  }
+  const main = list.find((i) => i.isMain) || list[0];
+  const others = list.filter((i) => i.url !== main.url);
+  return [main.url, ...others.map((i) => i.url)];
+}
+
+function ProductImage({ product }) {
+  const gallery = getGallery(product);
+  const hasAlternates = gallery.length > 1;
+  const [activeIdx, setActiveIdx] = useState(0);
+  const timerRef = useRef(null);
+
+  useEffect(() => () => clearInterval(timerRef.current), []);
+
+  const startCycle = () => {
+    if (!hasAlternates) return;
+    // Start from the first non-main image on hover
+    setActiveIdx(1);
+    if (gallery.length > 2) {
+      timerRef.current = setInterval(() => {
+        setActiveIdx((cur) => {
+          const next = cur + 1;
+          return next >= gallery.length ? 1 : next;
+        });
+      }, HOVER_CYCLE_MS);
+    }
+  };
+
+  const stopCycle = () => {
+    clearInterval(timerRef.current);
+    timerRef.current = null;
+    setActiveIdx(0);
+  };
+
+  return (
+    <div
+      className="relative w-full flex-1 flex items-center justify-center py-3 lg:py-4"
+      onMouseEnter={startCycle}
+      onMouseLeave={stopCycle}
+      onFocus={startCycle}
+      onBlur={stopCycle}
+      data-testid={`product-image-${product.sku}`}
+      data-hover-alternates={hasAlternates ? "true" : "false"}
+    >
+      {gallery.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt={`${product.name} — ${product.variant} pack${i > 0 ? ` (view ${i + 1})` : ""}`}
+          loading={i === 0 ? "lazy" : "eager"}
+          data-testid={`product-image-${product.sku}-${i}`}
+          className={`bottle-img absolute inset-0 mx-auto my-auto w-32 lg:w-40 h-40 lg:h-52 object-contain drop-shadow-md transition-opacity duration-500 ${
+            i === activeIdx ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ position: i === 0 ? "relative" : "absolute" }}
+        />
+      ))}
+      {hasAlternates && (
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5"
+             data-testid={`product-image-dots-${product.sku}`}>
+          {gallery.map((_, i) => (
+            <span
+              key={i}
+              className="block h-1.5 rounded-full transition-all"
+              style={{
+                width: i === activeIdx ? 14 : 6,
+                background: i === activeIdx
+                  ? "var(--brand-primary)"
+                  : "rgba(59, 36, 20, 0.28)",
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -84,14 +171,7 @@ export default function ProductGrid() {
                   )}
                   <PackBadge variant={p.variant} index={i} />
 
-                  <div className="w-full flex-1 flex items-center justify-center py-3 lg:py-4">
-                    <img
-                      src={p.image}
-                      alt={`${p.name} — ${p.variant} pack`}
-                      className="bottle-img w-32 lg:w-40 h-40 lg:h-52 object-contain drop-shadow-md"
-                      loading="lazy"
-                    />
-                  </div>
+                  <ProductImage product={p} />
 
                   <div className="flex items-center gap-3 mt-2">
                     <span

@@ -154,46 +154,120 @@ export default function CheckoutPage() {
     setPlacing(true);
     try {
       const total = subtotal + (shipping.charge || 0);
-      const r = await apiClient.post("/orders", {
-        phone: address.phone,
-        address: {
-          name: address.name,
-          line1: address.line1,
-          line2: address.line2,
-          landmark: address.landmark,
-          city: address.city,
-          state: address.state,
-          pincode: address.pincode,
-        },
-        items: items.map((i) => ({
-          sku: i.sku,
-          name: i.name,
-          variant: i.variant,
-          price: i.price,
-          quantity: i.quantity,
-          image: i.image,
-        })),
-        subtotal,
-        shipping: shipping.charge || 0,
-        total,
-        paymentMethod,
+
+      // COD skips the payment gateway entirely.
+      if (paymentMethod === "COD") {
+        await finalizeOrder(total, { paymentMethod: "COD", paymentReference: null });
+        return;
+      }
+
+      // 1. Create a Razorpay order server-side.
+      const orderRes = await apiClient.post("/payments/razorpay/create-order", {
+        amount: total,
+        receipt: `HR-${Date.now().toString().slice(-10)}`,
+        notes: { phone: address.phone, name: address.name },
       });
-      // FIX #3: Toast with order number + item summary before navigating
-      const orderNo = r.data.order.orderNumber;
-      const itemsLine = items
-        .map((i) => `${i.name} ${i.variant} × ${i.quantity}`)
-        .join(", ");
-      toast.success(
-        `Order ${orderNo} placed successfully!`,
-        { description: itemsLine, duration: 6000 }
-      );
-      clear();
-      navigate(`/order/${orderNo}`, { state: { order: r.data.order } });
+      const { orderId, amount, currency, keyId } = orderRes.data;
+
+      if (typeof window.Razorpay !== "function") {
+        toast.error("Payment gateway failed to load. Please refresh and try again.");
+        setPlacing(false);
+        return;
+      }
+
+      // 2. Open Razorpay checkout modal.
+      const rzp = new window.Razorpay({
+        key: keyId,
+        amount,
+        currency,
+        order_id: orderId,
+        name: company?.brandName || "Hariram's",
+        description: `Pure Cow Ghee — ${items.reduce((n, i) => n + i.quantity, 0)} item(s)`,
+        image: "/assets/logo/logo.webp",
+        theme: { color: "#174C2B" },
+        prefill: {
+          name: address.name,
+          contact: `+91${address.phone}`,
+        },
+        method: {
+          upi: paymentMethod === "UPI",
+          card: paymentMethod === "CARD",
+          netbanking: paymentMethod === "NETBANKING",
+          wallet: true,
+        },
+        modal: {
+          ondismiss: () => {
+            setPlacing(false);
+            toast.info("Payment cancelled. Your cart is still saved.");
+          },
+        },
+        handler: async (rzpRes) => {
+          try {
+            // 3. Verify signature on our backend.
+            await apiClient.post("/payments/razorpay/verify", {
+              razorpay_order_id: rzpRes.razorpay_order_id,
+              razorpay_payment_id: rzpRes.razorpay_payment_id,
+              razorpay_signature: rzpRes.razorpay_signature,
+            });
+            // 4. Finalize the order in our system.
+            await finalizeOrder(total, {
+              paymentMethod,
+              paymentReference: rzpRes.razorpay_payment_id,
+            });
+          } catch (err) {
+            toast.error(err.response?.data?.detail || "Payment verification failed");
+            setPlacing(false);
+          }
+        },
+      });
+      rzp.on("payment.failed", (resp) => {
+        toast.error(resp.error?.description || "Payment failed. Please try again.");
+        setPlacing(false);
+      });
+      rzp.open();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Order could not be placed");
-    } finally {
       setPlacing(false);
     }
+  };
+
+  const finalizeOrder = async (total, { paymentMethod: pm, paymentReference }) => {
+    const r = await apiClient.post("/orders", {
+      phone: address.phone,
+      address: {
+        name: address.name,
+        line1: address.line1,
+        line2: address.line2,
+        landmark: address.landmark,
+        city: address.city,
+        state: address.state,
+        pincode: address.pincode,
+      },
+      items: items.map((i) => ({
+        sku: i.sku,
+        name: i.name,
+        variant: i.variant,
+        price: i.price,
+        quantity: i.quantity,
+        image: i.image,
+      })),
+      subtotal,
+      shipping: shipping.charge || 0,
+      total,
+      paymentMethod: pm,
+      paymentReference,
+    });
+    const orderNo = r.data.order.orderNumber;
+    const itemsLine = items
+      .map((i) => `${i.name} ${i.variant} × ${i.quantity}`)
+      .join(", ");
+    toast.success(
+      `Order ${orderNo} placed successfully!`,
+      { description: itemsLine, duration: 6000 }
+    );
+    clear();
+    navigate(`/order/${orderNo}`, { state: { order: r.data.order } });
+    setPlacing(false);
   };
 
   const total = subtotal + (shipping.charge ?? 0);
@@ -385,12 +459,12 @@ export default function CheckoutPage() {
               >
                 <h3 className="text-2xl mb-1" style={{ color: "var(--brand-primary)" }}>3. Payment</h3>
                 <p className="text-sm mb-4" style={{ color: "var(--brand-muted)" }}>
-                  Select payment method. Real gateway (Razorpay) integration goes live in the next release.
+                  Select payment method. You will be redirected to Razorpay's secure checkout.
                 </p>
                 <div className="text-xs mb-4 rounded-lg border p-3 inline-flex items-center gap-2"
                      style={{ background: "#FFF3E0", borderColor: "var(--brand-secondary)", color: "var(--brand-text)" }}>
                   <Lock className="w-4 h-4" style={{ color: "var(--brand-primary)" }} />
-                  Test mode — payment is simulated. No real charge.
+                  Razorpay test mode — use any UPI ID like <span className="font-mono ml-1">success@razorpay</span> to complete a demo payment.
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

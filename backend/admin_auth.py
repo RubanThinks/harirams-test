@@ -21,6 +21,8 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 
+from msg91 import send_otp as msg91_send_otp, verify_otp as msg91_verify_otp, is_configured as msg91_is_configured
+
 JWT_ALGORITHM = "HS256"
 ACCESS_TTL_HOURS = 8
 BRUTE_LOCK_MINUTES = 15
@@ -150,19 +152,25 @@ def register(api: APIRouter, db):
             "created_at": now.isoformat(),
             "expires_at": (now + timedelta(minutes=OTP_TTL_MINUTES)).isoformat(),
         })
-        # Mock delivery — real MSG91 WhatsApp call goes here at go-live
-        import logging
-        logging.getLogger("hariram").info(
-            f"[MOCK-WHATSAPP OTP -> {OTP_TARGET_PHONE}] Admin login OTP: {otp} (session {session_id[:8]})"
+        # Dispatch OTP through MSG91 (falls back to MOCK when template not set).
+        # We forward our locally-generated OTP so the sessionId/OTP stay in sync
+        # regardless of provider.
+        live = msg91_is_configured("admin")
+        send_result = msg91_send_otp(
+            OTP_TARGET_PHONE, kind="admin",
+            length=6, expiry_minutes=OTP_TTL_MINUTES, otp=otp,
         )
-        return {
+        response = {
             "otpRequired": True,
             "sessionId": session_id,
             "otpTarget": OTP_TARGET_PHONE,
             "ttlMinutes": OTP_TTL_MINUTES,
-            "mock": True,
-            "mockOtp": otp,  # remove once real MSG91 WhatsApp is wired
+            "mock": not live,
         }
+        if not live:
+            # Echo the OTP on-screen only in MOCK mode.
+            response["mockOtp"] = otp
+        return response
 
     @router.post("/verify-otp")
     async def verify_otp(req: VerifyOtpRequest):

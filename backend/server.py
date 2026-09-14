@@ -21,6 +21,7 @@ from typing import List, Optional, Any
 import uuid
 from datetime import datetime, timezone
 from notifications import send_order_confirmation
+from msg91 import send_otp as msg91_send_otp, verify_otp as msg91_verify_otp, is_configured as msg91_is_configured
 
 ROOT_DIR = Path(__file__).parent
 CONFIG_DIR = ROOT_DIR / "config"
@@ -251,21 +252,31 @@ async def send_otp(req: OtpSendRequest):
     if len(phone) != 10:
         raise HTTPException(status_code=400, detail="Enter a valid 10-digit Indian mobile number")
 
+    # Route via MSG91 WhatsApp when configured, else fall back to MOCK.
+    live = msg91_is_configured("customer")
+    result = msg91_send_otp(phone, kind="customer", length=6, expiry_minutes=5)
+    stored_otp = result.get("otp")  # MSG91 handles storage; MOCK returns the OTP here
+
     doc = {
         "phone": phone,
-        "otp": MOCK_OTP,
+        "otp": stored_otp if not live else None,   # only kept for MOCK fallback
+        "provider": result.get("provider"),
+        "request_id": result.get("request_id"),
         "created_at": datetime.now(timezone.utc).isoformat(),
         "attempts": 0,
         "verified": False,
+        "mock": bool(result.get("mock")),
     }
     await db.otp_requests.update_one({"phone": phone}, {"$set": doc}, upsert=True)
-    log.info(f"[MOCK OTP] Sent OTP {MOCK_OTP} to +91-{phone}")
-    return {
+
+    payload = {
         "success": True,
         "message": f"OTP sent to +91-{phone}",
-        "mock": True,
-        "hint": f"Use {MOCK_OTP} to verify (mock mode — replace with real SMS provider before go-live).",
+        "mock": bool(result.get("mock")),
     }
+    if result.get("mock"):
+        payload["hint"] = f"Use {stored_otp} to verify (MOCK mode — configure MSG91_TEMPLATE_ID for real WhatsApp delivery)."
+    return payload
 
 
 @api.post("/auth/verify-otp")
@@ -279,7 +290,18 @@ async def verify_otp(req: OtpVerifyRequest):
     if rec.get("attempts", 0) >= 5:
         raise HTTPException(status_code=429, detail="Too many attempts. Please request a new OTP.")
 
-    if (req.otp or "").strip() != rec["otp"]:
+    submitted = (req.otp or "").strip()
+    verified = False
+
+    if rec.get("mock") or not msg91_is_configured("customer"):
+        # MOCK path — compare against stored value (or the fixed fallback)
+        expected = rec.get("otp") or MOCK_OTP
+        verified = submitted == expected
+    else:
+        result = msg91_verify_otp(phone, submitted, kind="customer")
+        verified = bool(result.get("ok"))
+
+    if not verified:
         raise HTTPException(status_code=401, detail="Invalid OTP. Please try again.")
 
     await db.otp_requests.update_one({"phone": phone}, {"$set": {"verified": True}})
@@ -490,6 +512,7 @@ from admin_products import register as _reg_admin_products
 from admin_shipping import register as _reg_admin_shipping
 from admin_orders import register as _reg_admin_orders
 from admin_config import register as _reg_admin_config
+from payments import register as _reg_payments
 from storage import init_storage as _storage_init, get_object as _storage_get
 
 _reg_admin_auth(api, db)
@@ -497,6 +520,7 @@ _reg_admin_products(api, db)
 _reg_admin_shipping(api)
 _reg_admin_orders(api, db)
 _reg_admin_config(api)
+_reg_payments(api)
 
 
 # Public product-image serving: object storage first (tracked in MongoDB),

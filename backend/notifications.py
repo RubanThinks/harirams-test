@@ -1,13 +1,13 @@
 """
-Notification service — stubs SMS + WhatsApp for order confirmation.
+Notification service — sends order confirmation over SMS + WhatsApp.
 
-Phase 1: logs the intended message only. Replace `_send_sms` / `_send_whatsapp`
-with real Twilio / MSG91 / WhatsApp Business calls at go-live.
-
-Kept intentionally small so switching providers is a one-file change.
+Real WhatsApp delivery is routed via `msg91.py` when the outbound sender is
+configured. Everything else falls back to MOCK logs (Phase 1 behaviour).
 """
 import logging
 import os
+
+from msg91 import send_message as msg91_whatsapp
 
 log = logging.getLogger("hariram.notifications")
 
@@ -42,11 +42,13 @@ def _send_sms(phone: str, message: str) -> dict:
 
 
 def _send_whatsapp(phone: str, message: str) -> dict:
-    if PROVIDER_WHATSAPP == "MOCK":
-        log.info(f"[MOCK-WHATSAPP -> +91-{phone}] {message}")
-        return {"provider": "MOCK", "delivered": True, "mock": True}
-    log.warning(f"[WhatsApp provider {PROVIDER_WHATSAPP}] not implemented — falling back to MOCK")
-    return {"provider": PROVIDER_WHATSAPP, "delivered": False, "reason": "provider not wired"}
+    """Delegate WhatsApp delivery to MSG91 helper; it falls back to MOCK
+    logs when MSG91 outbound isn't configured."""
+    try:
+        return msg91_whatsapp(phone, message)
+    except Exception as e:
+        log.warning(f"WhatsApp send failed via MSG91: {e}")
+        return {"provider": "MOCK", "delivered": False, "error": str(e)}
 
 
 def send_order_confirmation(order: dict) -> dict:
