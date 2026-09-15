@@ -21,7 +21,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 
-from msg91 import send_otp as msg91_send_otp, verify_otp as msg91_verify_otp, is_configured as msg91_is_configured
+from msg91 import send_whatsapp_otp, is_configured as msg91_is_configured
 
 JWT_ALGORITHM = "HS256"
 ACCESS_TTL_HOURS = 8
@@ -152,14 +152,10 @@ def register(api: APIRouter, db):
             "created_at": now.isoformat(),
             "expires_at": (now + timedelta(minutes=OTP_TTL_MINUTES)).isoformat(),
         })
-        # Dispatch OTP through MSG91 (falls back to MOCK when template not set).
-        # We forward our locally-generated OTP so the sessionId/OTP stay in sync
-        # regardless of provider.
-        live = msg91_is_configured("admin")
-        send_result = msg91_send_otp(
-            OTP_TARGET_PHONE, kind="admin",
-            length=6, expiry_minutes=OTP_TTL_MINUTES, otp=otp,
-        )
+        # Dispatch OTP through MSG91's WhatsApp outbound API (falls back to
+        # MOCK when the integrated_number/authkey aren't configured).
+        live = msg91_is_configured()
+        send_whatsapp_otp(OTP_TARGET_PHONE, otp)
         response = {
             "otpRequired": True,
             "sessionId": session_id,

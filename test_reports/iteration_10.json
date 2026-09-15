@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 10 backend testing for MSG91 WhatsApp OTP refactor + Razorpay regression. All 13 targeted tests passed (backend only, frontend skipped as requested). Covered: customer OTP MOCK send/verify happy + wrong (401) + rate-limit (429), admin 2FA MOCK login + JWT exchange, LIVE MSG91 outbound payload SHAPE via httpx.post monkey-patch (URL, authkey header, integrated_number, content_type='template', template.name='whatsappotp', language.code='en', namespace, to_and_components[0].to=['91<10digit>'], components.body_1.value == OTP, components.button_1.value == OTP), Razorpay config/create-order/verify-mismatch, E2E COD order flow after refactor, admin purge + re-place order.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iteration10_msg91_whatsapp.py",
+    "/app/test_reports/pytest/iteration10.xml"
+  ],
+  "action_items": [
+    "None required. All specified scenarios pass. When MSG91_INTEGRATED_NUMBER + LIVE Razorpay keys are populated via Manage Publishes → Secrets in production, re-run iteration10 tests against prod smoke to confirm live delivery + live keyId echo."
+  ],
+  "critical_code_review_comments": [
+    "server.py verify_otp: `attempts` increment happens then compared against stale `rec.attempts`. Behaviourally correct (429 kicks in on the 6th wrong attempt) but slightly non-obvious — a short code comment would help.",
+    "admin_orders.purge deletes ALL otp_requests globally. Under parallel test runners (xdist enabled by default in /app/backend/pytest.ini via `-n auto --dist loadscope`) this cross-worker races with concurrent OTP flow tests. Ran serially (-n 0) for the iteration file. Consider scoping purge to admin-side data only, or add a test-only flag.",
+    "msg91.send_message() is still MOCK — order-confirmation WhatsApp delivery not yet live (documented and expected).",
+    "server.py /orders always sets paymentStatus='PAID' regardless of paymentMethod (including COD). Consider marking COD as PENDING until delivery/collection to reflect reality — pre-existing, not introduced this iteration."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration10_msg91_whatsapp.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "n/a (skipped per request)"},
+  "test_credentials": "Admin admin / Harirams0507 (mockOtp echoed in login response). Customer OTP: any 10-digit 6-9 prefix phone, MOCK OTP = 123456.",
+  "seed_data_creation": "None. Purge test wipes orders/OTPs, then re-creates one order via full OTP flow.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iteration10 test file: /app/backend/tests/test_iteration10_msg91_whatsapp.py. Run with `-n 0` (serial) because TestAdminPurgeAndReorder wipes global otp_requests which races with rate-limit test under xdist. When MSG91_INTEGRATED_NUMBER goes live, the TestMsg91LivePayloadShape.test_live_payload_shape test already asserts the exact payload shape MSG91 will receive — no code changes needed.",
+  "rca of the issue": "First run with default xdist (2 workers, loadscope) produced [401,401,401,401,404,404,404,404] on the rate-limit test — because the purge test in the other worker deleted the otp_requests document mid-flight, so subsequent verify-otp requests fell into the 'Please request an OTP first' branch (404). Fix in test runner: pass `-n 0` for this iteration file. Pre-existing implementation is correct; no server bug."
+}

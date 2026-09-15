@@ -19,9 +19,9 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Any
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from notifications import send_order_confirmation
-from msg91 import send_otp as msg91_send_otp, verify_otp as msg91_verify_otp, is_configured as msg91_is_configured
+from msg91 import send_whatsapp_otp, is_configured as msg91_is_configured
 
 ROOT_DIR = Path(__file__).parent
 CONFIG_DIR = ROOT_DIR / "config"
@@ -237,6 +237,7 @@ class OtpVerifyRequest(BaseModel):
 
 
 MOCK_OTP = "123456"
+OTP_TTL_MINUTES = 5
 
 
 def _norm_phone(phone: str) -> str:
@@ -246,28 +247,35 @@ def _norm_phone(phone: str) -> str:
     return p
 
 
+def _generate_otp() -> str:
+    """6-digit numeric OTP with leading zeros preserved."""
+    return f"{random.randint(0, 999999):06d}"
+
+
 @api.post("/auth/send-otp")
 async def send_otp(req: OtpSendRequest):
     phone = _norm_phone(req.phone)
     if len(phone) != 10:
         raise HTTPException(status_code=400, detail="Enter a valid 10-digit Indian mobile number")
 
-    # Route via MSG91 WhatsApp when configured, else fall back to MOCK.
-    live = msg91_is_configured("customer")
-    result = msg91_send_otp(phone, kind="customer", length=6, expiry_minutes=5)
-    stored_otp = result.get("otp")  # MSG91 handles storage; MOCK returns the OTP here
+    live = msg91_is_configured()
+    # In live mode: random OTP (real security). In mock mode: fixed 123456
+    # so local dev/testing can proceed without WhatsApp delivery.
+    otp = _generate_otp() if live else MOCK_OTP
 
+    now = datetime.now(timezone.utc)
     doc = {
         "phone": phone,
-        "otp": stored_otp if not live else None,   # only kept for MOCK fallback
-        "provider": result.get("provider"),
-        "request_id": result.get("request_id"),
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "otp": otp,
+        "created_at": now.isoformat(),
+        "expires_at": (now + timedelta(minutes=OTP_TTL_MINUTES)).isoformat(),
         "attempts": 0,
         "verified": False,
-        "mock": bool(result.get("mock")),
+        "mock": not live,
     }
     await db.otp_requests.update_one({"phone": phone}, {"$set": doc}, upsert=True)
+
+    result = send_whatsapp_otp(phone, otp)
 
     payload = {
         "success": True,
@@ -275,7 +283,7 @@ async def send_otp(req: OtpSendRequest):
         "mock": bool(result.get("mock")),
     }
     if result.get("mock"):
-        payload["hint"] = f"Use {stored_otp} to verify (MOCK mode — configure MSG91_TEMPLATE_ID for real WhatsApp delivery)."
+        payload["hint"] = f"Use {otp} to verify (MOCK — set MSG91_INTEGRATED_NUMBER for real WhatsApp delivery)."
     return payload
 
 
@@ -286,22 +294,19 @@ async def verify_otp(req: OtpVerifyRequest):
     if not rec:
         raise HTTPException(status_code=404, detail="Please request an OTP first")
 
+    # Expiry check
+    try:
+        expires_at = datetime.fromisoformat(rec.get("expires_at") or "")
+    except (ValueError, TypeError):
+        expires_at = None
+    if expires_at and expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="OTP expired. Please request a new one.")
+
     await db.otp_requests.update_one({"phone": phone}, {"$inc": {"attempts": 1}})
     if rec.get("attempts", 0) >= 5:
         raise HTTPException(status_code=429, detail="Too many attempts. Please request a new OTP.")
 
-    submitted = (req.otp or "").strip()
-    verified = False
-
-    if rec.get("mock") or not msg91_is_configured("customer"):
-        # MOCK path — compare against stored value (or the fixed fallback)
-        expected = rec.get("otp") or MOCK_OTP
-        verified = submitted == expected
-    else:
-        result = msg91_verify_otp(phone, submitted, kind="customer")
-        verified = bool(result.get("ok"))
-
-    if not verified:
+    if (req.otp or "").strip() != (rec.get("otp") or ""):
         raise HTTPException(status_code=401, detail="Invalid OTP. Please try again.")
 
     await db.otp_requests.update_one({"phone": phone}, {"$set": {"verified": True}})

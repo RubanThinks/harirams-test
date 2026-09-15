@@ -1,62 +1,6 @@
 {
   "products": [
     {
-      "sku": "HG200",
-      "name": "Pure Cow Ghee",
-      "variant": "200 ml",
-      "price": 199.0,
-      "mrp": 0.0,
-      "description": "",
-      "idealFor": "",
-      "image": "/api/uploads/products/HG200_f0cd8c7f.jpg",
-      "images": [
-        {
-          "url": "/api/uploads/products/HG200_f0cd8c7f.jpg",
-          "isMain": true
-        },
-        {
-          "url": "/api/uploads/products/HG200_a13a3159.jpg",
-          "isMain": false
-        },
-        {
-          "url": "/api/uploads/products/HG200_8b68c066.jpg",
-          "isMain": false
-        }
-      ],
-      "bestSeller": false,
-      "available": false,
-      "displaySequence": 1,
-      "family": "ghee"
-    },
-    {
-      "sku": "HG500",
-      "name": "Pure Cow Ghee",
-      "variant": "500 ml",
-      "price": 555.0,
-      "mrp": 770.0,
-      "description": "",
-      "idealFor": "",
-      "image": "/api/uploads/products/HG500_3b8d638b.jpg",
-      "images": [
-        {
-          "url": "/api/uploads/products/HG500_3b8d638b.jpg",
-          "isMain": true
-        },
-        {
-          "url": "/api/uploads/products/HG500_91603563.jpg",
-          "isMain": false
-        },
-        {
-          "url": "/api/uploads/products/HG500_429e0258.jpg",
-          "isMain": false
-        }
-      ],
-      "bestSeller": true,
-      "available": true,
-      "displaySequence": 2,
-      "family": "ghee"
-    },
-    {
       "sku": "HG1000",
       "name": "Pure Cow Ghee",
       "variant": "1000 ml",
@@ -110,6 +54,46 @@
       "bestSeller": false,
       "available": false,
       "displaySequence": 5,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG500",
+      "name": "Pure Cow Ghee",
+      "variant": "500 ml",
+      "price": 555.0,
+      "mrp": null,
+      "description": "",
+      "idealFor": "",
+      "image": "/api/uploads/products/HG500_3b8d638b.jpg",
+      "images": [
+        {
+          "url": "/api/uploads/products/HG500_3b8d638b.jpg",
+          "isMain": true
+        }
+      ],
+      "bestSeller": false,
+      "available": true,
+      "displaySequence": 999,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG200",
+      "name": "Pure Cow Ghee",
+      "variant": "200 ml",
+      "price": 199.0,
+      "mrp": null,
+      "description": "",
+      "idealFor": "",
+      "image": "/api/uploads/products/HG200_f0cd8c7f.jpg",
+      "images": [
+        {
+          "url": "/api/uploads/products/HG200_f0cd8c7f.jpg",
+          "isMain": true
+        }
+      ],
+      "bestSeller": false,
+      "available": true,
+      "displaySequence": 999,
       "family": "ghee"
     },
     {

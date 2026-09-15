@@ -1,40 +1,44 @@
 """
-MSG91 WhatsApp OTP helper.
+MSG91 WhatsApp OTP helper — routes through the WhatsApp Outbound Message API
+(POST /api/v5/whatsapp/whatsapp-outbound-message/bulk/).
 
-Uses MSG91's hosted OTP service (v5/otp) — MSG91 handles OTP generation,
-persistence and verification. To route delivery via WhatsApp, the referenced
-`template_id` must be configured in the MSG91 dashboard against a WhatsApp
-template.
+Unlike MSG91's SMS OTP hosted endpoint (/api/v5/otp), the WhatsApp outbound
+API does NOT generate, store or verify OTPs — the caller is responsible for
+all of that. The caller must pass a pre-generated OTP and this helper simply
+delivers it via the approved WhatsApp template.
 
-If MSG91_TEMPLATE_ID (customer) or MSG91_ADMIN_TEMPLATE_ID (admin 2FA) is
-blank, the corresponding call falls back to MOCK mode so local dev keeps
-working. The MOCK provides a fixed OTP (123456 for customers, echoed OTP for
-admin) so the flow can still be exercised end-to-end.
+Template used (approved on MSG91):
+  name       : whatsappotp   (AUTHENTICATION category)
+  language   : en            (parameter_format: POSITIONAL)
+  namespace  : 7fe9dc17_51c3_4e12_a20e_712b61d3b6a5
+  variables  : body_1 (OTP text), button_1 (OTP text for copy-code button)
+
+If MSG91_INTEGRATED_NUMBER or MSG91_AUTHKEY is missing, the helper falls back
+to MOCK mode: it logs the OTP and returns `mock=True` so the API layer can
+show the code on-screen for local development.
 """
 import logging
 import os
-import random
 from typing import Optional
 
 import httpx
 
 log = logging.getLogger("hariram.msg91")
 
-MSG91_BASE = "https://control.msg91.com/api/v5"
-MOCK_CUSTOMER_OTP = "123456"
+MSG91_WHATSAPP_URL = "https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/"
 
 
-def _authkey() -> str:
-    return (os.environ.get("MSG91_AUTHKEY") or "").strip()
+def _cfg(key: str, default: str = "") -> str:
+    return (os.environ.get(key) or default).strip()
 
 
-def _template_id(kind: str) -> str:
-    env_key = "MSG91_ADMIN_TEMPLATE_ID" if kind == "admin" else "MSG91_TEMPLATE_ID"
-    return (os.environ.get(env_key) or "").strip()
+def is_configured() -> bool:
+    """True when live WhatsApp delivery is possible."""
+    return bool(_cfg("MSG91_AUTHKEY") and _cfg("MSG91_INTEGRATED_NUMBER") and _cfg("MSG91_TEMPLATE_NAME"))
 
 
-def _normalize_to_e164(phone: str) -> str:
-    """Return 12-digit MSG91-style number: 91XXXXXXXXXX (no plus)."""
+def normalize_to_e164_digits(phone: str) -> str:
+    """Return MSG91-friendly digits: 91 + 10-digit local part, no plus."""
     digits = "".join(ch for ch in (phone or "") if ch.isdigit())
     if len(digits) == 10:
         digits = "91" + digits
@@ -45,106 +49,73 @@ def _normalize_to_e164(phone: str) -> str:
     return digits
 
 
-def is_configured(kind: str = "customer") -> bool:
-    return bool(_authkey() and _template_id(kind))
+def send_whatsapp_otp(phone: str, otp: str) -> dict:
+    """Deliver `otp` to `phone` via the approved WhatsApp OTP template.
 
-
-def send_otp(
-    phone: str,
-    kind: str = "customer",
-    length: int = 6,
-    expiry_minutes: int = 5,
-    otp: Optional[str] = None,
-) -> dict:
-    """Send an OTP via MSG91.
-
-    Returns a dict describing the outcome:
-      {mock: bool, provider: str, otp: Optional[str], request_id: str|None, delivered: bool}
-
-    If `otp` is passed, it will be forwarded to MSG91 (they will use it instead
-    of generating one). This is important for admin 2FA where we want to keep
-    the OTP tied to our sessionId.
+    Returns {mock, delivered, request_id, provider, [error]}. Never raises.
     """
-    authkey = _authkey()
-    tpl = _template_id(kind)
-    to = _normalize_to_e164(phone)
+    authkey = _cfg("MSG91_AUTHKEY")
+    integrated = _cfg("MSG91_INTEGRATED_NUMBER")
+    template_name = _cfg("MSG91_TEMPLATE_NAME", "whatsappotp")
+    language = _cfg("MSG91_TEMPLATE_LANGUAGE", "en")
+    namespace = _cfg("MSG91_TEMPLATE_NAMESPACE")
+    to = normalize_to_e164_digits(phone)
 
-    if not authkey or not tpl:
-        # MOCK — mimic MSG91 behavior for local/dev.
-        mock_otp = otp or (MOCK_CUSTOMER_OTP if kind == "customer" else f"{random.randint(0, 999999):06d}")
-        log.info(f"[MOCK-WHATSAPP OTP -> +{to}] {mock_otp} (kind={kind})")
-        return {
-            "mock": True,
-            "provider": "MOCK",
-            "otp": mock_otp,
-            "request_id": None,
-            "delivered": True,
-        }
+    if not authkey or not integrated:
+        # MOCK path (preview / local dev without INTEGRATED_NUMBER).
+        log.info(f"[MOCK-WHATSAPP OTP -> +{to}] {otp}")
+        return {"mock": True, "delivered": True, "provider": "MOCK", "request_id": None}
 
-    params = {
-        "template_id": tpl,
-        "mobile": to,
-        "authkey": authkey,
-        "otp_length": length,
-        "otp_expiry": expiry_minutes,
+    template: dict = {
+        "name": template_name,
+        "language": {"code": language, "policy": "deterministic"},
+        "to_and_components": [
+            {
+                "to": [to],
+                "components": {
+                    "body_1": {"type": "text", "value": otp},
+                    "button_1": {"subtype": "url", "type": "text", "value": otp},
+                },
+            }
+        ],
     }
-    if otp:
-        params["otp"] = otp
+    if namespace:
+        template["namespace"] = namespace
+
+    payload = {
+        "integrated_number": integrated,
+        "content_type": "template",
+        "payload": {
+            "messaging_product": "whatsapp",
+            "type": "template",
+            "template": template,
+        },
+    }
+    headers = {"Content-Type": "application/json", "authkey": authkey}
     try:
-        r = httpx.post(f"{MSG91_BASE}/otp", params=params, timeout=15)
-        data = r.json() if r.headers.get("content-type", "").startswith("application/json") else {"raw": r.text}
-        ok = str(data.get("type", "")).lower() == "success" or 200 <= r.status_code < 300
-        log.info(f"[MSG91 send-otp -> +{to}] status={r.status_code} body={data}")
+        r = httpx.post(MSG91_WHATSAPP_URL, json=payload, headers=headers, timeout=15)
+        try:
+            data = r.json()
+        except ValueError:
+            data = {"raw": r.text}
+        ok = 200 <= r.status_code < 300 and str(data.get("type", "")).lower() != "error"
+        request_id = data.get("request_id") or data.get("requestId")
+        log.info(f"[MSG91 whatsapp-outbound -> +{to}] status={r.status_code} ok={ok} body={data}")
         return {
             "mock": False,
-            "provider": "MSG91",
-            "otp": otp,  # only echoed if caller supplied it
-            "request_id": data.get("request_id"),
             "delivered": bool(ok),
+            "provider": "MSG91",
+            "request_id": request_id,
             "raw": data,
         }
     except Exception as e:  # pragma: no cover
-        log.exception("MSG91 send-otp failed: %s", e)
-        return {"mock": False, "provider": "MSG91", "otp": otp, "request_id": None, "delivered": False, "error": str(e)}
-
-
-def verify_otp(phone: str, otp: str, kind: str = "customer") -> dict:
-    """Verify an OTP via MSG91.
-
-    Returns {ok: bool, provider: str, raw: dict}. Callers should treat ok=True
-    as verified. When not configured, callers must do their own verification.
-    """
-    authkey = _authkey()
-    tpl = _template_id(kind)
-    to = _normalize_to_e164(phone)
-
-    if not authkey or not tpl:
-        return {"ok": False, "provider": "MOCK", "raw": {"reason": "MSG91 not configured"}}
-
-    try:
-        r = httpx.get(
-            f"{MSG91_BASE}/otp/verify",
-            params={"authkey": authkey, "otp": otp, "mobile": to},
-            timeout=15,
-        )
-        data = r.json() if r.headers.get("content-type", "").startswith("application/json") else {"raw": r.text}
-        ok = str(data.get("type", "")).lower() == "success"
-        log.info(f"[MSG91 verify-otp -> +{to}] status={r.status_code} ok={ok}")
-        return {"ok": ok, "provider": "MSG91", "raw": data}
-    except Exception as e:  # pragma: no cover
-        log.exception("MSG91 verify-otp failed: %s", e)
-        return {"ok": False, "provider": "MSG91", "raw": {"error": str(e)}}
+        log.exception("MSG91 whatsapp-outbound failed: %s", e)
+        return {"mock": False, "delivered": False, "provider": "MSG91", "request_id": None, "error": str(e)}
 
 
 def send_message(phone: str, message: str) -> dict:
-    """Free-form WhatsApp message (order confirmations etc.) — MSG91 requires a
-    template for outbound WhatsApp. Until an outbound template is configured,
-    keep this as a MOCK so order flow is not blocked."""
-    authkey = _authkey()
-    integrated = (os.environ.get("MSG91_SENDER") or "").strip()
-    if not authkey or not integrated:
-        log.info(f"[MOCK-WHATSAPP -> +91-{phone}] {message}")
-        return {"provider": "MOCK", "delivered": True, "mock": True}
-    # Real outbound requires a template — deferred to go-live.
-    log.info(f"[MSG91 outbound (not-wired) -> +91-{phone}] {message}")
-    return {"provider": "MSG91", "delivered": False, "reason": "outbound template not wired"}
+    """Free-form outbound WhatsApp message (order confirmations). MSG91 requires
+    an approved template for every outbound message — kept as MOCK until an
+    outbound template beyond the OTP one is approved."""
+    log.info(f"[MOCK-WHATSAPP -> +91-{phone}] {message}")
+    return {"provider": "MOCK", "delivered": True, "mock": True}
