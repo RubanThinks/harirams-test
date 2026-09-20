@@ -77,37 +77,66 @@ def test_get_product_unknown(s):
     assert r.status_code == 404
 
 
-# --- Shipping ---
+# --- Shipping (weight-based: rate per unit depends on variant + destination zone) ---
 def test_shipping_chennai(s):
+    # 1 x 500 ml to Chennai -> 45
     r = s.post(f"{API}/shipping/calculate",
-               json={"pincode": "600001", "city": "Chennai", "state": "Tamil Nadu", "subtotal": 399})
+               json={"pincode": "600001", "city": "Chennai", "state": "Tamil Nadu", "subtotal": 399,
+                     "items": [{"variant": "500 ml", "quantity": 1}]})
     assert r.status_code == 200
     d = r.json()
-    assert d["charge"] == 40
-    assert d["rule"] == "CITY:Chennai"
+    assert d["charge"] == 45
+    assert d["rule"] == "WEIGHT:CHENNAI"
 
 
 def test_shipping_tn(s):
+    # 1 x 1000 ml to rest of Tamil Nadu -> 95
     r = s.post(f"{API}/shipping/calculate",
-               json={"pincode": "620001", "city": "Trichy", "state": "Tamil Nadu", "subtotal": 399})
+               json={"pincode": "620001", "city": "Trichy", "state": "Tamil Nadu", "subtotal": 399,
+                     "items": [{"variant": "1000 ml", "quantity": 1}]})
     assert r.status_code == 200
     d = r.json()
-    assert d["charge"] == 80
-    assert d["rule"] == "STATE:Tamil Nadu"
+    assert d["charge"] == 95
+    assert d["rule"] == "WEIGHT:TN"
 
 
-def test_shipping_default(s):
+def test_shipping_south_india_per_unit(s):
+    # 2 x 500 ml to Kerala (South India) -> 100 x 2 = 200
     r = s.post(f"{API}/shipping/calculate",
-               json={"pincode": "110001", "city": "Delhi", "state": "Delhi", "subtotal": 399})
+               json={"pincode": "682001", "city": "Kochi", "state": "Kerala", "subtotal": 798,
+                     "items": [{"variant": "500 ml", "quantity": 2}]})
     assert r.status_code == 200
     d = r.json()
-    assert d["charge"] == 149
-    assert d["rule"] == "DEFAULT"
+    assert d["charge"] == 200
+    assert d["rule"] == "WEIGHT:SOUTH_INDIA"
+
+
+def test_shipping_others_mixed(s):
+    # Delhi (others): 1 x 1000 ml (250) + 1 x 500 ml (150) = 400
+    r = s.post(f"{API}/shipping/calculate",
+               json={"pincode": "110001", "city": "Delhi", "state": "Delhi", "subtotal": 800,
+                     "items": [{"variant": "1000 ml", "quantity": 1},
+                               {"variant": "500 ml", "quantity": 1}]})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["charge"] == 400
+    assert d["rule"] == "WEIGHT:OTHERS"
+
+
+def test_shipping_unlisted_variant_free(s):
+    # Denominations not in the grid ship at 0
+    r = s.post(f"{API}/shipping/calculate",
+               json={"pincode": "600001", "city": "Chennai", "state": "Tamil Nadu", "subtotal": 199,
+                     "items": [{"variant": "200 ml", "quantity": 3}]})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["charge"] == 0
 
 
 def test_shipping_free(s):
     r = s.post(f"{API}/shipping/calculate",
-               json={"pincode": "110001", "city": "Delhi", "state": "Delhi", "subtotal": 1200})
+               json={"pincode": "110001", "city": "Delhi", "state": "Delhi", "subtotal": 1200,
+                     "items": [{"variant": "1000 ml", "quantity": 1}]})
     assert r.status_code == 200
     d = r.json()
     assert d["charge"] == 0

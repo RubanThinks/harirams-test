@@ -60,6 +60,7 @@ export const TESTIDS = {
   payMethod: (m) => `pay-method-${m}`,
   payNow: "pay-now",
   orderSummary: "order-summary",
+  orderGst: "order-gst",
   orderShipping: "order-shipping",
   orderTotal: "order-total",
 

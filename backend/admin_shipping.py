@@ -3,6 +3,7 @@ Admin — shipping rates management (JSON editor + download / upload).
 Source of truth: /app/backend/config/shipping_rates.json
 """
 import json
+import os
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
@@ -11,6 +12,13 @@ from admin_auth import require_admin
 
 CONFIG_PATH = Path(__file__).parent / "config" / "shipping_rates.json"
 router = APIRouter(prefix="/admin/shipping-rates", tags=["admin-shipping"])
+
+
+def _write_atomic(payload: dict):
+    tmp = CONFIG_PATH.with_suffix(".json.tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+    os.replace(tmp, CONFIG_PATH)  # atomic — readers never see a partial file
 
 
 @router.get("")
@@ -36,8 +44,7 @@ async def put_rates(payload: dict, _: dict = Depends(require_admin)):
             raise HTTPException(status_code=400, detail=f"Missing '{key}'")
     if not isinstance(payload.get("rules"), list):
         raise HTTPException(status_code=400, detail="'rules' must be a list")
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
+    _write_atomic(payload)
     return {"success": True}
 
 
@@ -52,8 +59,7 @@ async def upload_rates(file: UploadFile = File(...), _: dict = Depends(require_a
         raise HTTPException(status_code=400, detail="Missing required fields (rules, defaultCharge)")
     if not isinstance(parsed.get("rules"), list):
         raise HTTPException(status_code=400, detail="'rules' must be a list")
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(parsed, f, indent=2, ensure_ascii=False)
+    _write_atomic(parsed)
     return {"success": True}
 
 

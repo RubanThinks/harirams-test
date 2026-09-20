@@ -1,6 +1,16 @@
 {
-  "defaultCharge": 149,
   "freeShippingAbove": 999,
+  "unserviceablePincodes": [],
+  "southIndiaStates": ["Andhra Pradesh", "Telangana", "Kerala", "Karnataka"],
+  "weightRates": {
+    "100 ml": { "chennai": 0, "tn": 0, "south_india": 0, "others": 0 },
+    "200 ml": { "chennai": 0, "tn": 0, "south_india": 0, "others": 0 },
+    "500 ml": { "chennai": 45, "tn": 65, "south_india": 100, "others": 150 },
+    "1000 ml": { "chennai": 70, "tn": 95, "south_india": 150, "others": 250 },
+    "5 Litre": { "chennai": 0, "tn": 0, "south_india": 0, "others": 0 },
+    "15 Lt": { "chennai": 0, "tn": 0, "south_india": 0, "others": 0 }
+  },
+  "defaultCharge": 149,
   "rules": [
     {
       "priority": 1,
@@ -20,6 +30,5 @@
       "value": "*",
       "charge": 149
     }
-  ],
-  "unserviceablePincodes": []
+  ]
 }

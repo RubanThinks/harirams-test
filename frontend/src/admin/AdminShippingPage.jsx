@@ -105,8 +105,11 @@ export default function AdminShippingPage() {
 
       <div className="admin-card">
         <div className="mb-3 text-xs text-[color:#6B5A46]">
-          Rule types: <code>CITY</code>, <code>STATE</code>, <code>PINCODE</code>, <code>DEFAULT</code>.
-          Lower <code>priority</code> = evaluated first. Set <code>freeShippingAbove</code> to a cart-subtotal threshold in ₹.
+          Shipping is <strong>per-unit, weight-based</strong>: <code>weightRates</code> maps each product
+          variant (e.g. <code>"500 ml"</code>) to charges per zone — <code>chennai</code>, <code>tn</code>,{" "}
+          <code>south_india</code> (states listed in <code>southIndiaStates</code>), <code>others</code>.
+          Charge = per-unit rate × quantity. <code>freeShippingAbove</code> is the cart-subtotal threshold in ₹.
+          Legacy <code>rules</code>/<code>defaultCharge</code> are kept for reference.
         </div>
         <textarea
           data-testid={ADMIN_TID.shippingEditor}

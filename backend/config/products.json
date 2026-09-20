@@ -1,11 +1,67 @@
 {
   "products": [
     {
+      "sku": "HG200",
+      "name": "Pure Cow Ghee",
+      "variant": "200 ml",
+      "price": 245.0,
+      "mrp": 356.0,
+      "description": "",
+      "idealFor": "Temple offering",
+      "image": "/api/uploads/products/HG200_de68c6de.jpg",
+      "images": [
+        {
+          "url": "/api/uploads/products/HG200_de68c6de.jpg",
+          "isMain": true
+        },
+        {
+          "url": "/api/uploads/products/HG200_5e595127.jpg",
+          "isMain": false
+        },
+        {
+          "url": "/api/uploads/products/HG200_4dc010e3.jpg",
+          "isMain": false
+        }
+      ],
+      "bestSeller": false,
+      "available": false,
+      "displaySequence": 2,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG500",
+      "name": "Pure Cow Ghee",
+      "variant": "500 ml",
+      "price": 501.0,
+      "mrp": 950.0,
+      "description": "",
+      "idealFor": "Small Families",
+      "image": "/api/uploads/products/HG500_25224a28.jpg",
+      "images": [
+        {
+          "url": "/api/uploads/products/HG500_25224a28.jpg",
+          "isMain": true
+        },
+        {
+          "url": "/api/uploads/products/HG500_697fb87e.jpg",
+          "isMain": false
+        },
+        {
+          "url": "/api/uploads/products/HG500_08cb53d6.jpg",
+          "isMain": false
+        }
+      ],
+      "bestSeller": true,
+      "available": true,
+      "displaySequence": 3,
+      "family": "ghee"
+    },
+    {
       "sku": "HG1000",
       "name": "Pure Cow Ghee",
       "variant": "1000 ml",
-      "price": 977.0,
-      "mrp": 1400.0,
+      "price": 950.0,
+      "mrp": 1670.0,
       "description": "",
       "idealFor": "Families",
       "image": "/api/uploads/products/HG1000_8abd9bab.jpg",
@@ -25,7 +81,7 @@
       ],
       "bestSeller": false,
       "available": true,
-      "displaySequence": 3,
+      "displaySequence": 4,
       "family": "ghee"
     },
     {
@@ -35,7 +91,7 @@
       "price": 3299.0,
       "mrp": 0.0,
       "description": "",
-      "idealFor": "",
+      "idealFor": "Functions",
       "image": "/api/uploads/products/HG5000_be9adfea.jpg",
       "images": [
         {
@@ -57,81 +113,13 @@
       "family": "ghee"
     },
     {
-      "sku": "HG500",
-      "name": "Pure Cow Ghee",
-      "variant": "500 ml",
-      "price": 555.0,
-      "mrp": null,
-      "description": "",
-      "idealFor": "",
-      "image": "/api/uploads/products/HG500_3b8d638b.jpg",
-      "images": [
-        {
-          "url": "/api/uploads/products/HG500_3b8d638b.jpg",
-          "isMain": true
-        }
-      ],
-      "bestSeller": false,
-      "available": true,
-      "displaySequence": 999,
-      "family": "ghee"
-    },
-    {
-      "sku": "HG200",
-      "name": "Pure Cow Ghee",
-      "variant": "200 ml",
-      "price": 199.0,
-      "mrp": null,
-      "description": "",
-      "idealFor": "",
-      "image": "/api/uploads/products/HG200_f0cd8c7f.jpg",
-      "images": [
-        {
-          "url": "/api/uploads/products/HG200_f0cd8c7f.jpg",
-          "isMain": true
-        }
-      ],
-      "bestSeller": false,
-      "available": true,
-      "displaySequence": 999,
-      "family": "ghee"
-    },
-    {
-      "sku": "HG100",
-      "name": "Pure Cow Ghee",
-      "variant": "100 ml",
-      "price": 100.0,
-      "mrp": 100.0,
-      "description": "",
-      "idealFor": "Temple offering",
-      "image": "/api/uploads/products/HG100_ef98755e.jpg",
-      "images": [
-        {
-          "url": "/api/uploads/products/HG100_ef98755e.jpg",
-          "isMain": true
-        },
-        {
-          "url": "/api/uploads/products/HG100_e7b6ed6c.jpg",
-          "isMain": false
-        },
-        {
-          "url": "/api/uploads/products/HG100_c3b2a964.jpg",
-          "isMain": false
-        }
-      ],
-      "bestSeller": false,
-      "available": false,
-      "displaySequence": 999,
-      "family": "ghee"
-    },
-    {
       "sku": "HG15K",
       "name": "Pure Cow Ghee",
       "variant": "15 Lt",
       "price": 15000.0,
       "mrp": 15001.0,
       "description": "",
-      "idealFor": "Functions",
+      "idealFor": "Functions & Bulk orders",
       "image": "/api/uploads/products/HG15K_225104c5.jpg",
       "images": [
         {
@@ -141,6 +129,26 @@
         {
           "url": "/api/uploads/products/HG15K_3188a184.jpg",
           "isMain": false
+        }
+      ],
+      "bestSeller": false,
+      "available": false,
+      "displaySequence": 6,
+      "family": "ghee"
+    },
+    {
+      "sku": "HG100",
+      "name": "Pure Cow Ghee",
+      "variant": "100 ml",
+      "price": 153.0,
+      "mrp": null,
+      "description": "",
+      "idealFor": "",
+      "image": "/api/uploads/products/HG100_ef98755e.jpg",
+      "images": [
+        {
+          "url": "/api/uploads/products/HG100_ef98755e.jpg",
+          "isMain": true
         }
       ],
       "bestSeller": false,

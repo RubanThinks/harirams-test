@@ -269,23 +269,22 @@ class TestAdminShipping:
                          json={"defaultCharge": 50}, headers=admin_headers)
         assert r.status_code == 400
 
-        # PUT valid — bump defaultCharge, verify public calculate uses new value
+        # PUT valid — change the 500ml Chennai per-unit rate, verify public
+        # weight-based calculate uses the new value
         modified = json.loads(json.dumps(original))
-        modified["defaultCharge"] = 77
-        # Bump free-shipping threshold way up so DEFAULT rule triggers
-        modified["freeShippingAbove"] = 100000
-        # Remove any CITY/STATE/PINCODE match for a random pincode
-        modified["rules"] = []
+        modified["freeShippingAbove"] = 100000  # disable free-shipping for this check
+        modified["weightRates"]["500 ml"]["chennai"] = 77
         r = requests.put(f"{BASE_URL}/api/admin/shipping-rates",
                          json=modified, headers=admin_headers)
         assert r.status_code == 200
 
         r2 = requests.post(f"{BASE_URL}/api/shipping/calculate",
                            json={"pincode": "600001", "city": "Chennai",
-                                 "state": "TN", "subtotal": 500})
+                                 "state": "TN", "subtotal": 500,
+                                 "items": [{"variant": "500 ml", "quantity": 1}]})
         assert r2.status_code == 200
         assert r2.json()["charge"] == 77
-        assert r2.json()["rule"] == "DEFAULT"
+        assert r2.json()["rule"] == "WEIGHT:CHENNAI"
 
         # Download
         r3 = requests.get(f"{BASE_URL}/api/admin/shipping-rates/download",

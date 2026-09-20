@@ -397,6 +397,7 @@ def build_invoice_pdf(order: dict) -> bytes:
             _rs(it.get("price", 0) * it.get("quantity", 0)),
         ])
     rows.append(["", "", "", "Subtotal", _rs(order.get("subtotal", 0))])
+    rows.append(["", "", "", f"GST ({company.get('gstPercent', 5)}%)", _rs(order.get("gst", 0))])
     rows.append(["", "", "", "Shipping", _rs(order.get("shipping", 0))])
     rows.append(["", "", "", "TOTAL", _rs(order.get("total", 0))])
     tbl = Table(rows, colWidths=[10 * mm, 90 * mm, 15 * mm, 30 * mm, 30 * mm])

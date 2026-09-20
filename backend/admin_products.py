@@ -11,6 +11,7 @@ and is auto-synced to the entry with isMain=true on every write.
 """
 import asyncio
 import json
+import os
 import re
 import uuid
 from datetime import datetime, timezone
@@ -67,8 +68,10 @@ def _read() -> dict:
 
 
 def _write(data: dict):
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+    tmp = CONFIG_PATH.with_suffix(".json.tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+    os.replace(tmp, CONFIG_PATH)  # atomic — readers never see a partial file
 
 
 def _sanitize_ext(filename: str) -> str:

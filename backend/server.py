@@ -186,17 +186,39 @@ async def get_product(sku: str):
 # ---------------------------------------------------------------------------
 # Shipping calculation
 # ---------------------------------------------------------------------------
+class ShippingItem(BaseModel):
+    variant: str
+    quantity: int = 1
+
+
 class ShippingRequest(BaseModel):
     pincode: str
     city: Optional[str] = None
     state: Optional[str] = None
     subtotal: float = 0
+    items: List[ShippingItem] = []
 
 
-@api.post("/shipping/calculate")
-async def calculate_shipping(req: ShippingRequest):
+def _destination_zone(rates: dict, pincode: str, city: Optional[str], state: Optional[str]) -> str:
+    """Resolve the delivery zone: chennai / tn / south_india / others."""
+    city_l = (city or "").strip().lower()
+    state_l = (state or "").strip().lower()
+    if city_l == "chennai" or pincode.startswith("600"):
+        return "chennai"
+    if state_l == "tamil nadu":
+        return "tn"
+    south = [s.lower() for s in rates.get("southIndiaStates", [])]
+    if state_l in south:
+        return "south_india"
+    return "others"
+
+
+def _compute_shipping(pincode: str, city: Optional[str], state: Optional[str],
+                      subtotal: float, items: List[ShippingItem]) -> dict:
+    """Weight-based shipping: per-unit rate depends on the product variant
+    (500 ml / 1000 ml / …) and the destination zone; multiplied by quantity."""
     rates = load_config("shipping_rates")
-    pincode = (req.pincode or "").strip()
+    pincode = (pincode or "").strip()
 
     if not re.fullmatch(r"\d{6}", pincode):
         raise HTTPException(status_code=400, detail="Invalid PIN code. Must be 6 digits.")
@@ -204,24 +226,23 @@ async def calculate_shipping(req: ShippingRequest):
     if pincode in rates.get("unserviceablePincodes", []):
         raise HTTPException(status_code=422, detail="Sorry — we do not ship to this PIN code yet.")
 
-    # Free shipping threshold
+    # Free shipping threshold (on sale amount, pre-GST)
     free_above = rates.get("freeShippingAbove")
-    if free_above and req.subtotal >= float(free_above):
+    if free_above and subtotal >= float(free_above):
         return {"charge": 0, "rule": "FREE_SHIPPING", "freeShippingAbove": free_above}
 
-    # Find most specific rule
-    rules = sorted(rates.get("rules", []), key=lambda r: r.get("priority", 999))
-    for rule in rules:
-        rtype = rule.get("type")
-        rval = str(rule.get("value", "")).lower().strip()
-        if rtype == "CITY" and req.city and req.city.lower().strip() == rval:
-            return {"charge": float(rule["charge"]), "rule": f"CITY:{rule['value']}"}
-        if rtype == "STATE" and req.state and req.state.lower().strip() == rval:
-            return {"charge": float(rule["charge"]), "rule": f"STATE:{rule['value']}"}
-        if rtype == "PINCODE" and pincode == str(rule.get("value")):
-            return {"charge": float(rule["charge"]), "rule": f"PINCODE:{rule['value']}"}
+    zone = _destination_zone(rates, pincode, city, state)
+    weight_rates = rates.get("weightRates", {})
+    charge = 0.0
+    for it in items:
+        per_unit = float((weight_rates.get(it.variant) or {}).get(zone, 0))
+        charge += per_unit * max(1, int(it.quantity))
+    return {"charge": charge, "rule": f"WEIGHT:{zone.upper()}", "zone": zone}
 
-    return {"charge": float(rates.get("defaultCharge", 0)), "rule": "DEFAULT"}
+
+@api.post("/shipping/calculate")
+async def calculate_shipping(req: ShippingRequest):
+    return _compute_shipping(req.pincode, req.city, req.state, req.subtotal, req.items)
 
 
 # ---------------------------------------------------------------------------
@@ -415,6 +436,7 @@ class Order(BaseModel):
     address: Address
     items: List[OrderItem]
     subtotal: float
+    gst: float = 0
     shipping: float
     total: float
     paymentMethod: str
@@ -445,7 +467,20 @@ async def create_order(req: CreateOrderRequest):
     if not req.items:
         raise HTTPException(status_code=400, detail="Cart is empty")
 
-    # Mock payment — always success in Phase 1
+    # Authoritative server-side pricing: GST on sale amount + weight-based
+    # shipping recomputed from the actual items & destination (never trust the
+    # client-supplied totals).
+    company = load_config("company")
+    gst_pct = float(company.get("gstPercent", 0))
+    gst = round(req.subtotal * gst_pct / 100, 2)
+    ship = _compute_shipping(
+        req.address.pincode, req.address.city, req.address.state, req.subtotal,
+        [ShippingItem(variant=i.variant, quantity=i.quantity) for i in req.items],
+    )
+    shipping_charge = float(ship["charge"])
+    total = round(req.subtotal + gst + shipping_charge, 2)
+
+    # Payment — Razorpay orders are verified before this call; COD is PAID on delivery
     payment_status = "PAID"
 
     order = Order(
@@ -455,8 +490,9 @@ async def create_order(req: CreateOrderRequest):
         address=req.address,
         items=req.items,
         subtotal=req.subtotal,
-        shipping=req.shipping,
-        total=req.total,
+        gst=gst,
+        shipping=shipping_charge,
+        total=total,
         paymentMethod=req.paymentMethod,
         paymentStatus=payment_status,
         status="CONFIRMED",

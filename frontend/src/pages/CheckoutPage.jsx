@@ -68,6 +68,7 @@ export default function CheckoutPage() {
     try {
       const r = await apiClient.post("/shipping/calculate", {
         pincode: pin, city, state, subtotal,
+        items: items.map((i) => ({ variant: i.variant, quantity: i.quantity })),
       });
       setShipping({ charge: r.data.charge, rule: r.data.rule });
     } catch (err) {
@@ -150,10 +151,13 @@ export default function CheckoutPage() {
     }
   };
 
+  const gstPct = Number(company?.gstPercent ?? 5);
+  const gst = Math.round(subtotal * gstPct) / 100;
+
   const placeOrder = async () => {
     setPlacing(true);
     try {
-      const total = subtotal + (shipping.charge || 0);
+      const total = subtotal + gst + (shipping.charge || 0);
 
       // COD skips the payment gateway entirely.
       if (paymentMethod === "COD") {
@@ -252,6 +256,7 @@ export default function CheckoutPage() {
         image: i.image,
       })),
       subtotal,
+      gst,
       shipping: shipping.charge || 0,
       total,
       paymentMethod: pm,
@@ -270,7 +275,7 @@ export default function CheckoutPage() {
     setPlacing(false);
   };
 
-  const total = subtotal + (shipping.charge ?? 0);
+  const total = subtotal + gst + (shipping.charge ?? 0);
 
   return (
     <div style={{ background: "var(--brand-cream)", minHeight: "100vh" }}>
@@ -522,6 +527,10 @@ export default function CheckoutPage() {
             </ul>
             <div className="space-y-2 pt-4 border-t" style={{ borderColor: "var(--brand-border)" }}>
               <Row label="Subtotal" value={formatINR(subtotal)} />
+              <div data-testid={TESTIDS.orderGst} className="flex justify-between text-sm">
+                <span style={{ color: "var(--brand-text)" }}>GST ({gstPct}%)</span>
+                <span className="font-semibold" style={{ color: "var(--brand-text)" }}>{formatINR(gst)}</span>
+              </div>
               <Row
                 label="Shipping"
                 value={
