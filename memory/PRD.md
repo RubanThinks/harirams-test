@@ -51,6 +51,12 @@ Build a production-ready ecommerce website for Hariram's Pure Cow Ghee — follo
   - Delivered as **one PDF with mixed page sizes** (reportlab canvas + `setPageSize` per page).
 - **Admin 2FA** (WhatsApp OTP via MSG91, falls back to MOCK): password step returns `{ otpRequired, sessionId, otpTarget, ttlMinutes, mock, [mockOtp] }`; a second call to `POST /admin/auth/verify-otp` exchanges the OTP for the real JWT. Target phone `+91-9500049550` is hardcoded per spec. `mockOtp` is only echoed when `MSG91_ADMIN_TEMPLATE_ID` is empty.
 
+### Feb 2026 — Pricing & logistics
+- **GST 5% on sale amount**: `company.json` gains `gstPercent: 5`. Server computes GST authoritatively in `POST /orders` (`gst = subtotal × 5%`, stored on the order as `gst`; `total = subtotal + gst + shipping`). Checkout UI shows a GST row (`data-testid="order-gst"`); invoice PDF shows a GST row.
+- **Weight-based per-unit shipping**: `shipping_rates.json` gains `weightRates` (variant → {chennai, tn, south_india, others} per-unit charges) + `southIndiaStates`. Zones: Chennai (city or 600xxx PIN) → TN → South India (AP/Telangana/Kerala/Karnataka) → Others. Charge = per-unit rate × quantity, summed per item. 500 ml: 45/65/100/150; 1000 ml: 70/95/150/250; other denominations 0. `freeShippingAbove` (₹999, pre-GST subtotal) still applies. `/api/shipping/calculate` now accepts `items: [{variant, quantity}]`.
+- **Server-side pricing authority**: `create_order` ignores client-supplied shipping/total and recomputes both from items + address.
+- **Config writes atomic** (tmp + `os.replace`) in `admin_products.py` / `admin_shipping.py`; admin shipping PUT/upload validates `weightRates` shape. Test suite has `conftest.py` snapshot/restore for config files.
+
 ### Feb 2026 — Storefront upgrades
 - **Razorpay TEST payments** wired end-to-end. New backend routes `/api/payments/razorpay/{config,create-order,verify}` (HMAC-SHA256 signature verification). `checkout.razorpay.com/v1/checkout.js` loaded from `public/index.html`. Checkout flow: UPI/CARD/NETBANKING open the Razorpay modal and only place the local order after signature verification succeeds; COD bypasses the gateway.
 - **MSG91 WhatsApp OTP** helper (`backend/msg91.py`) uses MSG91's v5/otp hosted endpoints so MSG91 handles OTP generation, storage and verification. Falls back to MOCK (fixed OTP `123456` for customers, echoed OTP for admin 2FA) when the corresponding `MSG91_TEMPLATE_ID` / `MSG91_ADMIN_TEMPLATE_ID` env var is empty.

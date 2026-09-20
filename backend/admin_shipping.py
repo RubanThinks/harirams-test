@@ -21,6 +21,27 @@ def _write_atomic(payload: dict):
     os.replace(tmp, CONFIG_PATH)  # atomic — readers never see a partial file
 
 
+ZONES = ("chennai", "tn", "south_india", "others")
+
+
+def _validate(payload):
+    if not isinstance(payload.get("rules"), list):
+        raise HTTPException(status_code=400, detail="'rules' must be a list")
+    wr = payload.get("weightRates")
+    if wr is not None:
+        if not isinstance(wr, dict):
+            raise HTTPException(status_code=400, detail="'weightRates' must be an object keyed by variant")
+        for variant, zones in wr.items():
+            if not isinstance(zones, dict) or any(z not in ZONES for z in zones):
+                raise HTTPException(status_code=400, detail=f"weightRates['{variant}'] must map zones {ZONES} to numbers")
+            for z, v in zones.items():
+                if not isinstance(v, (int, float)) or v < 0:
+                    raise HTTPException(status_code=400, detail=f"weightRates['{variant}']['{z}'] must be a non-negative number")
+    si = payload.get("southIndiaStates")
+    if si is not None and not (isinstance(si, list) and all(isinstance(s, str) for s in si)):
+        raise HTTPException(status_code=400, detail="'southIndiaStates' must be a list of state names")
+
+
 @router.get("")
 async def get_rates(_: dict = Depends(require_admin)):
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
@@ -44,6 +65,7 @@ async def put_rates(payload: dict, _: dict = Depends(require_admin)):
             raise HTTPException(status_code=400, detail=f"Missing '{key}'")
     if not isinstance(payload.get("rules"), list):
         raise HTTPException(status_code=400, detail="'rules' must be a list")
+    _validate(payload)
     _write_atomic(payload)
     return {"success": True}
 
@@ -59,6 +81,7 @@ async def upload_rates(file: UploadFile = File(...), _: dict = Depends(require_a
         raise HTTPException(status_code=400, detail="Missing required fields (rules, defaultCharge)")
     if not isinstance(parsed.get("rules"), list):
         raise HTTPException(status_code=400, detail="'rules' must be a list")
+    _validate(parsed)
     _write_atomic(parsed)
     return {"success": True}
 
