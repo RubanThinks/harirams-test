@@ -2,7 +2,7 @@
   "banners": [
     {
       "id": "mother_daughter",
-      "enabled": false,
+      "enabled": true,
       "alt": "A mother lovingly feeding her daughter a spoon of Hariram's pure cow ghee served with rice",
       "desktop": "/assets/hero/mother_daughter/desktop.webp",
       "tablet": "/assets/hero/mother_daughter/tablet.webp",

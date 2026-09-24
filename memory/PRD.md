@@ -51,6 +51,9 @@ Build a production-ready ecommerce website for Hariram's Pure Cow Ghee — follo
   - Delivered as **one PDF with mixed page sizes** (reportlab canvas + `setPageSize` per page).
 - **Admin 2FA** (WhatsApp OTP via MSG91, falls back to MOCK): password step returns `{ otpRequired, sessionId, otpTarget, ttlMinutes, mock, [mockOtp] }`; a second call to `POST /admin/auth/verify-otp` exchanges the OTP for the real JWT. Target phone `+91-9500049550` is hardcoded per spec. `mockOtp` is only echoed when `MSG91_ADMIN_TEMPLATE_ID` is empty.
 
+### Feb 2026 — Assets
+- Hero banner `mother_daughter` (desktop/tablet/mobile .webp) replaced with new brand artwork supplied by owner. Old `.png` originals kept alongside for reference.
+
 ### Feb 2026 — Pricing & logistics
 - **GST 5% on sale amount**: `company.json` gains `gstPercent: 5`. Server computes GST authoritatively in `POST /orders` (`gst = subtotal × 5%`, stored on the order as `gst`; `total = subtotal + gst + shipping`). Checkout UI shows a GST row (`data-testid="order-gst"`); invoice PDF shows a GST row.
 - **Weight-based per-unit shipping**: `shipping_rates.json` gains `weightRates` (variant → {chennai, tn, south_india, others} per-unit charges) + `southIndiaStates`. Zones: Chennai (city or 600xxx PIN) → TN → South India (AP/Telangana/Kerala/Karnataka) → Others. Charge = per-unit rate × quantity, summed per item. 500 ml: 45/65/100/150; 1000 ml: 70/95/150/250; other denominations 0. `freeShippingAbove` (₹999, pre-GST subtotal) still applies. `/api/shipping/calculate` now accepts `items: [{variant, quantity}]`.
