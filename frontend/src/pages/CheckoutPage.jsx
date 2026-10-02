@@ -39,6 +39,7 @@ export default function CheckoutPage() {
   const [otpVerified, setOtpVerified] = useState(false);
   const [mockHint, setMockHint] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("UPI");
+  const PAYMENT_METHODS = ["UPI", "CARD", "NETBANKING"];
   const [placing, setPlacing] = useState(false);
   const [prefilledFromLast, setPrefilledFromLast] = useState(false);
   const nameInputRef = useRef(null);
@@ -158,12 +159,6 @@ export default function CheckoutPage() {
     setPlacing(true);
     try {
       const total = subtotal + gst + (shipping.charge || 0);
-
-      // COD skips the payment gateway entirely.
-      if (paymentMethod === "COD") {
-        await finalizeOrder(total, { paymentMethod: "COD", paymentReference: null });
-        return;
-      }
 
       // 1. Create a Razorpay order server-side.
       const orderRes = await apiClient.post("/payments/razorpay/create-order", {
@@ -472,8 +467,8 @@ export default function CheckoutPage() {
                   Razorpay test mode — use any UPI ID like <span className="font-mono ml-1">success@razorpay</span> to complete a demo payment.
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {["UPI", "CARD", "NETBANKING", "COD"].map((m) => (
+                <div className="grid grid-cols-3 gap-3">
+                  {PAYMENT_METHODS.map((m) => (
                     <button
                       key={m}
                       data-testid={TESTIDS.payMethod(m)}
@@ -487,7 +482,7 @@ export default function CheckoutPage() {
                         color: paymentMethod === m ? "white" : "var(--brand-text)",
                       }}
                     >
-                      {m === "COD" ? "Cash on Delivery" : m}
+                      {m}
                     </button>
                   ))}
                 </div>

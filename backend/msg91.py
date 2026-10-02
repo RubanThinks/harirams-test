@@ -119,3 +119,83 @@ def send_message(phone: str, message: str) -> dict:
     outbound template beyond the OTP one is approved."""
     log.info(f"[MOCK-WHATSAPP -> +91-{phone}] {message}")
     return {"provider": "MOCK", "delivered": True, "mock": True}
+
+
+# ---------------------------------------------------------------------------
+# Order-notification template ("notifyorder") — sent to the business owners'
+# phones when a new order lands. Approved template config (from MSG91):
+#   name       : notifyorder   (UTILITY category)
+#   language   : en            (parameter_format: NAMED)
+#   namespace  : null
+#   HEADER     : "New order{{var_1}}"   (var_1 -> order number)
+#   BODY       : "New order received "  (no variables)
+# Fixed recipients per spec:
+NOTIFY_ORDER_RECIPIENTS = ["+91-9500049550", "+91-9632262000"]
+
+
+def send_order_notification(order_number: str, recipients: list[str] | None = None) -> list[dict]:
+    """Deliver the `notifyorder` WhatsApp template to each recipient.
+
+    Returns a list of per-recipient delivery receipts; never raises so the
+    caller can safely store the result on the order document.
+    """
+    recipients = recipients or NOTIFY_ORDER_RECIPIENTS
+    authkey = _cfg("MSG91_AUTHKEY")
+    integrated = _cfg("MSG91_INTEGRATED_NUMBER")
+    template_name = _cfg("MSG91_NOTIFY_TEMPLATE_NAME", "notifyorder")
+    language = _cfg("MSG91_NOTIFY_TEMPLATE_LANGUAGE", "en")
+
+    receipts: list[dict] = []
+    for phone in recipients:
+        to = normalize_to_e164_digits(phone)
+        if not authkey or not integrated:
+            log.info(f"[MOCK-WHATSAPP notifyorder -> +{to}] order={order_number}")
+            receipts.append({"to": to, "provider": "MOCK", "delivered": True, "mock": True})
+            continue
+
+        payload = {
+            "integrated_number": integrated,
+            "content_type": "template",
+            "payload": {
+                "messaging_product": "whatsapp",
+                "type": "template",
+                "template": {
+                    "name": template_name,
+                    "language": {"code": language, "policy": "deterministic"},
+                    "to_and_components": [
+                        {
+                            "to": [to],
+                            "components": {
+                                # Header text slot — parameter var_1 → order number.
+                                "header_1": {
+                                    "type": "text",
+                                    "value": f" {order_number}",
+                                    "parameter_name": "var_1",
+                                }
+                            },
+                        }
+                    ],
+                },
+            },
+        }
+        headers = {"Content-Type": "application/json", "authkey": authkey}
+        try:
+            r = httpx.post(MSG91_WHATSAPP_URL, json=payload, headers=headers, timeout=15)
+            try:
+                data = r.json()
+            except ValueError:
+                data = {"raw": r.text}
+            ok = 200 <= r.status_code < 300 and str(data.get("type", "")).lower() != "error"
+            request_id = data.get("request_id") or data.get("requestId")
+            log.info(f"[MSG91 notifyorder -> +{to}] status={r.status_code} ok={ok} body={data}")
+            receipts.append({
+                "to": to,
+                "provider": "MSG91",
+                "delivered": bool(ok),
+                "request_id": request_id,
+                "raw": data,
+            })
+        except Exception as e:  # pragma: no cover
+            log.exception("MSG91 notifyorder failed for %s: %s", to, e)
+            receipts.append({"to": to, "provider": "MSG91", "delivered": False, "error": str(e)})
+    return receipts

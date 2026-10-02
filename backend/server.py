@@ -21,7 +21,7 @@ from typing import List, Optional, Any
 import uuid
 from datetime import datetime, timezone, timedelta
 from notifications import send_order_confirmation
-from msg91 import send_whatsapp_otp, is_configured as msg91_is_configured
+from msg91 import send_whatsapp_otp, is_configured as msg91_is_configured, send_order_notification
 
 ROOT_DIR = Path(__file__).parent
 CONFIG_DIR = ROOT_DIR / "config"
@@ -503,6 +503,13 @@ async def create_order(req: CreateOrderRequest):
     # Send order-confirmation via SMS + WhatsApp (mocked in Phase 1 — logs only)
     receipts = send_order_confirmation(doc)
     doc["notificationReceipts"] = receipts
+
+    # Fan-out WhatsApp notification to the business owners (notifyorder template).
+    try:
+        doc["ownerNotifications"] = send_order_notification(order.orderNumber)
+    except Exception as e:
+        log.exception("Owner notifyorder failed: %s", e)
+        doc["ownerNotifications"] = [{"delivered": False, "error": str(e)}]
 
     await db.orders.insert_one(dict(doc))  # insert copy so `doc` isn't mutated with _id
 

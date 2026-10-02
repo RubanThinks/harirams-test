@@ -147,9 +147,10 @@ def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
     # ---- TO block (top-aligned) ----
     text_top = div_y - 3 * mm
     c.setFillColor(colors.HexColor("#111111"))
-    label_size = 9
-    body_size = 10.5
-    line_gap = 4.2 * mm
+    # Font sizes: +2 bump across label + body for better print legibility.
+    label_size = 11
+    body_size = 12.5
+    line_gap = 5.0 * mm
 
     c.setFont("Helvetica-Bold", label_size)
     c.drawString(inner_left, text_top, "TO:")
@@ -172,10 +173,10 @@ def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
     c.setFillColor(colors.HexColor("#6B5A46"))
     c.drawString(inner_left, from_cursor, "FROM:")
     from_cursor -= line_gap
-    c.setFont("Helvetica-Bold", body_size - 0.5)
+    c.setFont("Helvetica-Bold", body_size)
     c.setFillColor(colors.HexColor("#3B2414"))
     for ln in FROM_ADDRESS_LINES:
-        c.drawString(inner_left, from_cursor, _clip(ln, c, body_size - 0.5, inner_right - inner_left))
+        c.drawString(inner_left, from_cursor, _clip(ln, c, body_size, inner_right - inner_left))
         from_cursor -= line_gap
 
     # Order number footer (bottom-right, small)
@@ -187,14 +188,24 @@ def _draw_box(c: canvas.Canvas, x: float, y: float, w: float, h: float,
 
 
 def _clip(text: str, c: canvas.Canvas, font_size: float, max_width: float) -> str:
-    """Truncate `text` with ellipsis if it overflows `max_width` at current font."""
-    if c.stringWidth(text, "Helvetica-Bold", font_size) <= max_width:
+    """Shrink the string to fit `max_width` at the given font without ellipsis.
+
+    If the string overflows the sticker row even at a reduced size, drop
+    whole trailing words first, then individual characters as a last resort.
+    """
+    def width_of(s: str) -> float:
+        return c.stringWidth(s, "Helvetica-Bold", font_size)
+
+    if width_of(text) <= max_width:
         return text
-    # Progressive shortening
-    ellipsis = "…"
-    while text and c.stringWidth(text + ellipsis, "Helvetica-Bold", font_size) > max_width:
-        text = text[:-1]
-    return (text + ellipsis) if text else ""
+    # Try word-level trimming first so phrases stay readable.
+    words = text.split()
+    while len(words) > 1 and width_of(" ".join(words)) > max_width:
+        words.pop()
+    out = " ".join(words)
+    while out and width_of(out) > max_width:
+        out = out[:-1]
+    return out
 
 
 def _draw_page(c: canvas.Canvas, size: str, orders: list[dict], logo):
