@@ -75,6 +75,12 @@ Build a production-ready ecommerce website for Hariram's Pure Cow Ghee — follo
 - **Universal config editor** (`/admin/config`): edits every `.json` and `.md` under `backend/config/` (legal + content included)
 - **Tests**: 63/63 storefront+admin + 18/18 new iteration-5 tests
 
+### Feb 2026 — Session 13 fixes
+- **COD removed** from checkout: `CheckoutPage.jsx` now exposes only UPI / CARD / NETBANKING; the COD branch in `placeOrder` deleted. Every order flows through Razorpay (test mode in preview, live keys in deployed secrets).
+- **Owner WhatsApp notifications** on every order: new `send_order_notification(order_number)` in `msg91.py` posts the approved MSG91 **notifyorder** template (NAMED, var_1 → order number) to the two hard-coded recipients `+91-9500049550` and `+91-9632262000`. `server.py::create_order` fans out the call and stores per-recipient receipts under `order.ownerNotifications`.
+- **Admin print-address font bump**: `admin_pdf.py::_draw_box` now uses label=11pt, body=12.5pt, line_gap=5mm (previously 9/10.5pt). Still Helvetica-Bold on TO + FROM blocks; FROM block no longer uses `body_size - 0.5` so the owner's return address matches the TO block weight.
+- **Missing-images fix**: `storage.py::get_object`/`put_object` now auto-retry once with `init_storage(force=True)` on 401/403/5xx responses. Root cause: the session-scoped `storage_key` goes inactive after a while → every subsequent `GET /api/uploads/products/{filename}` returned 404. Verified with pytest in `backend/tests/test_iteration12_owner_notify_cod_pdf.py`.
+
 ## Prioritised backlog
 
 ### P0 (go-live blockers)
