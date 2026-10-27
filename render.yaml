@@ -23,7 +23,7 @@ services:
     runtime: static
     rootDir: frontend
     buildCommand: yarn && yarn build
-    publishDir: build
+    staticPublishPath: ./build
     routes:
       - type: rewrite
         source: /*
