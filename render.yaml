@@ -22,7 +22,6 @@ services:
   - type: web
     name: hariram-frontend
     runtime: static
-    region: oregon
     plan: free
     rootDir: frontend
     buildCommand: yarn && yarn build
