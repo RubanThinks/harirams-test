@@ -4,7 +4,6 @@ services:
     name: hariram-backend-api
     runtime: python
     region: oregon
-    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
@@ -22,10 +21,9 @@ services:
   - type: web
     name: hariram-frontend
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: yarn && yarn build
-    staticPublishPath: build
+    publishDir: build
     routes:
       - type: rewrite
         source: /*
