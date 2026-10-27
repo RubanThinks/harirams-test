@@ -1,105 +1,187 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ShoppingCart, Star, HandHeart, Users, Utensils, Building2 } from "lucide-react";
+import { Crown, HandHeart, Users, Utensils, Building2, ShoppingCart, Check } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { formatINR } from "@/lib/format";
 import { TESTIDS } from "@/constants/testIds";
+import ScrollReveal from "@/components/ui/ScrollReveal";
 
 const IDEAL_ICONS = [HandHeart, Users, Utensils, Building2];
 const HOVER_CYCLE_MS = 1400;
 
-function PackBadge({ variant }) {
-  const isFiveLitre = /5\s*L/i.test(variant);
-  return (
-    <div className={`pack-badge ${isFiveLitre ? "blue" : ""}`}>
-      {variant}
-    </div>
-  );
-}
-
-/**
- * Builds an ordered list of image URLs for a product with the main image first.
- * Falls back to the legacy singular `image` field if `images[]` is empty.
- */
 function getGallery(product) {
-  const list = Array.isArray(product.images) ? product.images.filter((i) => i?.url) : [];
-  if (list.length === 0) {
-    return product.image ? [product.image] : [];
+  // Dedicated 3-angle photography for 200 ml pack (1. Front, 2. Right, 3. Back)
+  if (
+    product?.sku === "HG200" ||
+    product?.variant?.includes("200")
+  ) {
+    return [
+      "/assets/products/HG200_front.png",
+      "/assets/products/HG200_right.png",
+      "/assets/products/HG200_left.png"
+    ];
   }
-  const main = list.find((i) => i.isMain) || list[0];
-  const others = list.filter((i) => i.url !== main.url);
-  return [main.url, ...others.map((i) => i.url)];
+
+  // Dedicated 3-angle photography for 500 ml pack (1. Front, 2. Right, 3. Back)
+  if (
+    product?.sku === "HG500" ||
+    product?.variant?.includes("500")
+  ) {
+    return [
+      "/assets/products/HG500_front.png",
+      "/assets/products/HG500_right.png",
+      "/assets/products/HG500_left.png"
+    ];
+  }
+
+  // Dedicated 3-angle photography for 1 Litre / 1000 ml pack (1. Front, 2. Right, 3. Back)
+  if (
+    product?.sku === "HG1000" ||
+    product?.variant?.includes("1000") ||
+    product?.variant?.toLowerCase()?.includes("1 litre") ||
+    product?.variant?.toLowerCase()?.includes("1l")
+  ) {
+    return [
+      "/assets/products/HG1000_front.png",
+      "/assets/products/HG1000_right.png",
+      "/assets/products/HG1000_left.png"
+    ];
+  }
+
+  // Dedicated 3-angle photography for 5 Litre pack (1. Front, 2. Right, 3. Back)
+  if (
+    product?.sku === "HG5000" ||
+    product?.variant?.includes("5000") ||
+    product?.variant?.toLowerCase()?.includes("5 litre") ||
+    product?.variant?.toLowerCase()?.includes("5l")
+  ) {
+    return [
+      "/assets/products/HG5000_front.png",
+      "/assets/products/HG5000_right.png",
+      "/assets/products/HG5000_left.png"
+    ];
+  }
+
+  // If explicit angles are provided for other products
+  if (Array.isArray(product?.angles) && product.angles.length > 1) {
+    return product.angles;
+  }
+
+  if (product?.transparentImage) {
+    return [product.transparentImage];
+  }
+  return ["/assets/products/HG1000_front.png"];
 }
 
 function ProductImage({ product }) {
   const gallery = getGallery(product);
   const hasAlternates = gallery.length > 1;
   const [activeIdx, setActiveIdx] = useState(0);
-  const timerRef = useRef(null);
+  const stageRef = useRef(null);
 
-  useEffect(() => () => clearInterval(timerRef.current), []);
+  // Smooth mouse scrubbing for interactive rotating feel (1. Front -> 2. Right -> 3. Back)
+  const handleMouseMove = (e) => {
+    if (!hasAlternates || !stageRef.current) return;
+    const rect = stageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, x / rect.width));
 
-  const startCycle = () => {
-    if (!hasAlternates) return;
-    // Start from the first non-main image on hover
-    setActiveIdx(1);
-    if (gallery.length > 2) {
-      timerRef.current = setInterval(() => {
-        setActiveIdx((cur) => {
-          const next = cur + 1;
-          return next >= gallery.length ? 1 : next;
-        });
-      }, HOVER_CYCLE_MS);
-    }
-  };
-
-  const stopCycle = () => {
-    clearInterval(timerRef.current);
-    timerRef.current = null;
-    setActiveIdx(0);
+    const idx = Math.min(gallery.length - 1, Math.floor(ratio * gallery.length));
+    setActiveIdx(idx);
   };
 
   return (
     <div
-      className="relative w-full flex-1 flex items-center justify-center py-3 lg:py-4"
-      onMouseEnter={startCycle}
-      onMouseLeave={stopCycle}
-      onFocus={startCycle}
-      onBlur={stopCycle}
+      ref={stageRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setActiveIdx(0)}
+      className="relative w-full h-full flex flex-col items-center justify-center cursor-ew-resize select-none"
       data-testid={`product-image-${product.sku}`}
       data-hover-alternates={hasAlternates ? "true" : "false"}
     >
-      {gallery.map((src, i) => (
-        <img
-          key={src}
-          src={src}
-          alt={`${product.name} — ${product.variant} pack${i > 0 ? ` (view ${i + 1})` : ""}`}
-          loading={i === 0 ? "lazy" : "eager"}
-          data-testid={`product-image-${product.sku}-${i}`}
-          className={`bottle-img absolute inset-0 mx-auto my-auto w-32 lg:w-40 h-40 lg:h-52 object-contain drop-shadow-md transition-opacity duration-500 ${
-            i === activeIdx ? "opacity-100" : "opacity-0"
-          }`}
-          style={{ position: i === 0 ? "relative" : "absolute" }}
-        />
-      ))}
+      {/* 3-Angle Bottle Display */}
+      <div className="relative w-full h-full flex items-center justify-center">
+        {gallery.map((src, i) => (
+          <img
+            key={`${src}-${i}`}
+            src={src}
+            alt={`${product.name} — ${product.variant} pack view ${i + 1}`}
+            loading={i === 0 ? "lazy" : "eager"}
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = "/assets/products/HG1000_front.png";
+            }}
+            data-testid={`product-image-${product.sku}-${i}`}
+            className={`bottle-img absolute inset-0 mx-auto my-auto max-h-44 sm:max-h-48 w-auto max-w-full object-contain transition-all duration-200 drop-shadow-md group-hover:scale-105 ${
+              i === activeIdx ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Angle Selector Dots (Clean luxury indicators, no text labels) */}
       {hasAlternates && (
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1.5"
-             data-testid={`product-image-dots-${product.sku}`}>
+        <div className="absolute bottom-2.5 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-xs border border-stone-200/80 shadow-2xs">
           {gallery.map((_, i) => (
-            <span
+            <button
               key={i}
-              className="block h-1.5 rounded-full transition-all"
-              style={{
-                width: i === activeIdx ? 14 : 6,
-                background: i === activeIdx
-                  ? "var(--brand-primary)"
-                  : "rgba(59, 36, 20, 0.28)",
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveIdx(i);
               }}
+              onMouseEnter={(e) => {
+                e.stopPropagation();
+                setActiveIdx(i);
+              }}
+              className={`transition-all duration-200 rounded-full flex items-center justify-center cursor-pointer ${
+                i === activeIdx
+                  ? "w-4 h-1.5 bg-[#8E1B1B]"
+                  : "w-1.5 h-1.5 bg-stone-300 hover:bg-stone-500"
+              }`}
+              aria-label={`Show view ${i + 1}`}
             />
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+function TactileAddToCartButton({ onAdd, disabled, testId }) {
+  const [added, setAdded] = useState(false);
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (disabled || added) return;
+    onAdd();
+    setAdded(true);
+    setTimeout(() => {
+      setAdded(false);
+    }, 1200);
+  };
+
+  return (
+    <button
+      type="button"
+      data-testid={testId}
+      disabled={disabled}
+      onClick={handleClick}
+      className={`tactile-press-btn ${added ? "is-success" : ""}`}
+      aria-label="Add to cart"
+    >
+      {added ? (
+        <>
+          <Check className="w-4 h-4 stroke-[3] text-white" />
+          <span>Added to Cart</span>
+        </>
+      ) : (
+        <>
+          <ShoppingCart className="w-4 h-4 stroke-[2.5]" />
+          <span>Add to Cart</span>
+        </>
+      )}
+    </button>
   );
 }
 
@@ -122,31 +204,33 @@ export default function ProductGrid() {
     <section
       id="products"
       data-testid={TESTIDS.productsSection}
-      className="w-full py-4 lg:py-8 scroll-mt-24"
+      className="w-full py-10 lg:py-16 scroll-mt-24"
       style={{ background: "var(--brand-cream)" }}
       aria-label="Choose your pack"
     >
       <div className="container-brand">
-        <div className="text-center mb-4 lg:mb-6">
-          <div className="flex items-center justify-center mb-2">
-            <span className="gold-ornament" />
+        <ScrollReveal direction="up" distance={20}>
+          <div className="text-center mb-10 lg:mb-12">
+            <div className="flex items-center justify-center mb-2.5">
+              <span className="gold-ornament" />
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif" style={{ color: "var(--brand-primary)" }}>
+              Choose Your Pack
+            </h2>
+            <p className="mt-2 text-sm lg:text-base font-medium" style={{ color: "var(--brand-text)" }}>
+              <span style={{ color: "var(--brand-secondary)" }}>❋</span> Freshly prepared
+              &nbsp;•&nbsp; Pure Cow Ghee &nbsp;•&nbsp; Delivered with care{" "}
+              <span style={{ color: "var(--brand-secondary)" }}>❋</span>
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl" style={{ color: "var(--brand-primary)" }}>
-            Choose Your Pack
-          </h2>
-          <p className="mt-2 text-sm lg:text-base" style={{ color: "var(--brand-text)" }}>
-            <span style={{ color: "var(--brand-secondary)" }}>❋</span> Freshly prepared
-            &nbsp;•&nbsp; Pure Cow Ghee &nbsp;•&nbsp; Delivered with care{" "}
-            <span style={{ color: "var(--brand-secondary)" }}>❋</span>
-          </p>
-        </div>
+        </ScrollReveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-7">
           {loading &&
             Array.from({ length: 4 }).map((_, i) => (
               <div
                 key={i}
-                className="product-card animate-pulse h-[540px]"
+                className="luxury-product-card animate-pulse h-[460px]"
                 aria-hidden
               />
             ))}
@@ -155,65 +239,90 @@ export default function ProductGrid() {
             products.map((p, i) => {
               const Icon = IDEAL_ICONS[i % IDEAL_ICONS.length];
               return (
-                <article
-                  key={p.sku}
-                  data-testid={TESTIDS.productCard(p.sku)}
-                  className="product-card fade-in-up"
-                  style={{ animationDelay: `${i * 80}ms` }}
-                >
-                  {p.bestSeller && (
-                    <div
-                      data-testid={TESTIDS.productBestSeller(p.sku)}
-                      className="bestseller-ribbon"
-                    >
-                      <Star className="w-3.5 h-3.5" fill="white" /> BESTSELLER
-                    </div>
-                  )}
-                  <PackBadge variant={p.variant} index={i} />
-
-                  <ProductImage product={p} />
-
-                  <div className="flex items-center gap-3 mt-2">
-                    <span
-                      className="shrink-0 flex items-center justify-center w-10 h-10 rounded-full"
-                      style={{
-                        border: "1.5px solid var(--brand-secondary)",
-                        background: "var(--brand-cream)",
-                      }}
-                    >
-                      <Icon className="w-5 h-5" style={{ color: "var(--brand-secondary)" }} />
-                    </span>
-                    <div className="text-left">
-                      <div className="text-xs uppercase tracking-wider" style={{ color: "var(--brand-muted)" }}>
-                        Perfect for
-                      </div>
-                      <div className="text-sm font-semibold" style={{ color: "var(--brand-text)" }}>
-                        {p.idealFor || p.description}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex items-baseline justify-center gap-2">
-                    <span className="text-2xl lg:text-3xl font-extrabold" style={{ color: "var(--brand-primary)", fontFamily: "'Playfair Display', serif" }}>
-                      {formatINR(p.price)}
-                    </span>
-                    {p.mrp && p.mrp > p.price && (
-                      <span className="line-through text-sm" style={{ color: "var(--brand-muted)" }}>
-                        {formatINR(p.mrp)}
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    data-testid={TESTIDS.productAdd(p.sku)}
-                    onClick={() => add(p, 1)}
-                    disabled={!p.available}
-                    className="btn-primary w-full mt-5"
-                    aria-label={`Add ${p.variant} ${p.name} to cart`}
+                <ScrollReveal key={p.sku} staggerIndex={i} direction="up" distance={25} className="h-full flex flex-col">
+                  <article
+                    data-testid={TESTIDS.productCard(p.sku)}
+                    className="product-card luxury-product-card group h-full"
                   >
-                    <ShoppingCart className="w-5 h-5" /> ADD TO CART
-                  </button>
-                </article>
+                    {/* Clean Product Stage */}
+                    <div className="product-image-stage">
+                      {/* Pack Size Badge */}
+                      <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-[#8E1B1B] text-white border border-white/60 font-bold text-xs tracking-wide shadow-xs">
+                        {p.variant}
+                      </div>
+
+                      {/* Bestseller Badge */}
+                      {p.bestSeller && (
+                        <div
+                          data-testid={TESTIDS.productBestSeller(p.sku)}
+                          className="absolute top-3 right-3 z-10 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#D97706] to-[#B45309] text-white font-bold text-[10.5px] tracking-wider uppercase shadow-xs flex items-center gap-1"
+                        >
+                          <Crown className="w-3 h-3 text-amber-200" />
+                          <span>BESTSELLER</span>
+                        </div>
+                      )}
+
+                      {/* Product Image */}
+                      <ProductImage product={p} />
+                    </div>
+
+                    {/* Title & Authentic Subtitle */}
+                    <div className="w-full text-center px-1 mb-2">
+                      <h3 className="font-serif font-bold text-lg text-stone-900 tracking-tight leading-snug">
+                        {p.name}
+                      </h3>
+                      <div className="text-[11px] uppercase tracking-wider font-semibold text-amber-900/70 mt-0.5">
+                        100% Traditional Cow Ghee
+                      </div>
+                    </div>
+
+                    {/* Purpose Heritage Chip */}
+                    <div className="flex items-center gap-2.5 mb-3 w-full px-3 py-1.5 rounded-xl bg-[#FAF6EE] border border-[#EBE0CC]">
+                      <span
+                        className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full bg-white border border-[#DFCBB0] text-[#B45309] shadow-2xs"
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                      </span>
+                      <div className="text-left min-w-0">
+                        <div className="text-[9.5px] uppercase tracking-wider font-bold text-amber-900/70">
+                          Perfect for
+                        </div>
+                        <div className="text-xs font-semibold text-stone-800 truncate">
+                          {p.idealFor || p.description}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pricing (Google Pay / Amazon Style) */}
+                    <div className="mb-4 flex items-baseline justify-center gap-2 flex-wrap">
+                      <span
+                        data-price={p.price}
+                        className="font-price text-2xl lg:text-3xl font-bold tracking-tight text-emerald-950"
+                      >
+                        {formatINR(p.price)}
+                      </span>
+                      {p.mrp > p.price ? (
+                        <>
+                          <span className="font-price line-through text-sm font-medium text-stone-400">
+                            {formatINR(p.mrp)}
+                          </span>
+                          <span className="text-[10.5px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 rounded-md">
+                            Save {Math.round(((p.mrp - p.price) / p.mrp) * 100)}%
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+
+                    {/* Amazon / Flipkart Style Tactile Press Add to Cart Button */}
+                    <div className="w-full mt-auto">
+                      <TactileAddToCartButton
+                        testId={TESTIDS.productAdd(p.sku)}
+                        onAdd={() => add(p, 1)}
+                        disabled={!p.available}
+                      />
+                    </div>
+                  </article>
+                </ScrollReveal>
               );
             })}
         </div>

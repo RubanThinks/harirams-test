@@ -3,6 +3,10 @@ import Header from "@/components/Header";
 import HeroCarousel from "@/components/HeroCarousel";
 import BenefitsStrip from "@/components/BenefitsStrip";
 import ProductGrid from "@/components/ProductGrid";
+import HeritageProcess from "@/components/HeritageProcess";
+import PurityComparison from "@/components/PurityComparison";
+import CustomerReviews from "@/components/CustomerReviews";
+import FaqSection from "@/components/FaqSection";
 import Footer from "@/components/Footer";
 import CartDrawer from "@/components/CartDrawer";
 import { useConfig } from "@/hooks/useConfig";
@@ -29,6 +33,10 @@ export default function HomePage() {
         <HeroCarousel />
         <BenefitsStrip />
         <ProductGrid />
+        <HeritageProcess />
+        <PurityComparison />
+        <CustomerReviews />
+        <FaqSection />
       </main>
       <Footer />
       <CartDrawer />

@@ -59,16 +59,15 @@ export default function OrderConfirmationPage() {
         </div>
 
         <div
-          className="max-w-3xl mx-auto rounded-2xl border p-6 lg:p-8"
-          style={{ background: "var(--brand-surface)", borderColor: "var(--brand-border)" }}
+          className="max-w-3xl mx-auto rounded-2xl liquid-glass border border-white/70 p-6 lg:p-8 shadow-xl"
         >
           <div className="flex flex-col sm:flex-row justify-between gap-4 pb-5 mb-5 border-b" style={{ borderColor: "var(--brand-border)" }}>
             <div>
               <div className="text-xs uppercase tracking-wider" style={{ color: "var(--brand-muted)" }}>
                 Order Number
               </div>
-              <div data-testid={TESTIDS.confirmationOrder} className="text-2xl font-extrabold"
-                   style={{ color: "var(--brand-primary)", fontFamily: "'Playfair Display', serif" }}>
+              <div data-testid={TESTIDS.confirmationOrder} className="text-2xl font-bold font-price"
+                   style={{ color: "var(--brand-primary)" }}>
                 {order.orderNumber}
               </div>
             </div>
@@ -85,12 +84,22 @@ export default function OrderConfirmationPage() {
           <ul className="space-y-3 mb-5">
             {order.items.map((it) => (
               <li key={it.sku} className="flex items-center gap-3">
-                {it.image && <img src={it.image} alt="" className="bottle-img w-14 h-16 object-contain rounded-lg bg-[color:var(--brand-cream)]" />}
+                {it.image && (
+                  <img
+                    src={it.image.startsWith("/api") ? `http://localhost:8001${it.image}` : it.image}
+                    alt=""
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = "/assets/products/HG1000_front.png";
+                    }}
+                    className="bottle-img w-14 h-16 object-contain rounded-lg bg-[color:var(--brand-cream)]"
+                  />
+                )}
                 <div className="flex-1">
                   <div className="font-semibold" style={{ color: "var(--brand-primary)" }}>{it.name}</div>
                   <div className="text-sm" style={{ color: "var(--brand-muted)" }}>{it.variant} × {it.quantity}</div>
                 </div>
-                <div className="font-semibold" style={{ color: "var(--brand-text)" }}>
+                <div className="font-semibold font-price" style={{ color: "var(--brand-text)" }}>
                   {formatINR(it.price * it.quantity)}
                 </div>
               </li>
@@ -102,7 +111,7 @@ export default function OrderConfirmationPage() {
             <Row l="Shipping" v={order.shipping === 0 ? "FREE" : formatINR(order.shipping)} />
             <div className="flex justify-between pt-3 mt-1 border-t items-baseline" style={{ borderColor: "var(--brand-border)" }}>
               <span className="text-lg font-semibold" style={{ color: "var(--brand-text)" }}>Amount Paid</span>
-              <span className="text-3xl font-extrabold" style={{ color: "var(--brand-primary)", fontFamily: "'Playfair Display', serif" }}>
+              <span className="text-3xl font-bold font-price" style={{ color: "var(--brand-primary)" }}>
                 {formatINR(order.total)}
               </span>
             </div>

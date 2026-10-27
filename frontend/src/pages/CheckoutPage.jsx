@@ -291,8 +291,7 @@ export default function CheckoutPage() {
             {/* ADDRESS */}
             <section
               data-testid={TESTIDS.checkoutStepAddress}
-              className={`rounded-2xl border p-6 lg:p-8 ${step === "ADDRESS" ? "" : "opacity-70"}`}
-              style={{ background: "var(--brand-surface)", borderColor: "var(--brand-border)" }}
+              className={`rounded-2xl border p-6 lg:p-8 liquid-glass shadow-sm transition-all ${step === "ADDRESS" ? "border-amber-900/20" : "opacity-70"}`}
             >
               <h3 className="text-2xl mb-1" style={{ color: "var(--brand-primary)" }}>1. Delivery Address</h3>
               <p className="text-sm mb-6" style={{ color: "var(--brand-muted)" }}>
@@ -397,8 +396,7 @@ export default function CheckoutPage() {
             {step !== "ADDRESS" && (
               <section
                 data-testid={TESTIDS.checkoutStepOtp}
-                className={`rounded-2xl border p-6 lg:p-8 ${step === "OTP" ? "" : "opacity-70"}`}
-                style={{ background: "var(--brand-surface)", borderColor: "var(--brand-border)" }}
+                className={`rounded-2xl border p-6 lg:p-8 liquid-glass shadow-sm transition-all ${step === "OTP" ? "border-amber-900/20" : "opacity-70"}`}
               >
                 <h3 className="text-2xl mb-1" style={{ color: "var(--brand-primary)" }}>2. Verify Mobile</h3>
                 <p className="text-sm mb-6" style={{ color: "var(--brand-muted)" }}>
@@ -417,7 +415,7 @@ export default function CheckoutPage() {
                   <Field label="Enter OTP *" className="flex-1 w-full">
                     <input
                       data-testid={TESTIDS.otpInput}
-                      className={`${inputCls} tracking-[0.5em] text-center font-bold text-lg`}
+                      className={`${inputCls} tracking-[0.5em] text-center font-bold text-lg font-price`}
                       inputMode="numeric" maxLength={6}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -454,8 +452,7 @@ export default function CheckoutPage() {
             {step === "PAYMENT" && (
               <section
                 data-testid={TESTIDS.checkoutStepPayment}
-                className="rounded-2xl border p-6 lg:p-8"
-                style={{ background: "var(--brand-surface)", borderColor: "var(--brand-border)" }}
+                className="rounded-2xl border p-6 lg:p-8 liquid-glass shadow-sm border-amber-900/20"
               >
                 <h3 className="text-2xl mb-1" style={{ color: "var(--brand-primary)" }}>3. Payment</h3>
                 <p className="text-sm mb-4" style={{ color: "var(--brand-muted)" }}>
@@ -491,30 +488,37 @@ export default function CheckoutPage() {
                   data-testid={TESTIDS.payNow}
                   onClick={placeOrder}
                   disabled={placing}
-                  className="btn-primary w-full mt-6"
+                  className="btn-primary w-full mt-6 shadow-lg hover:shadow-xl transition-all"
                 >
-                  {placing ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Lock className="w-4 h-4" /> Pay {formatINR(total)}</>}
+                  {placing ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Lock className="w-4 h-4" /> Pay <span className="font-price font-bold ml-1">{formatINR(total)}</span></>}
                 </button>
               </section>
             )}
           </div>
 
-          {/* Right — Order Summary */}
+          {/* Right — Order Summary with Liquid Frosted Glass */}
           <aside
             data-testid={TESTIDS.orderSummary}
-            className="lg:sticky lg:top-28 h-fit rounded-2xl border p-6 lg:p-7"
-            style={{ background: "var(--brand-surface)", borderColor: "var(--brand-border)" }}
+            className="lg:sticky lg:top-28 h-fit rounded-2xl liquid-glass border border-white/70 p-6 lg:p-7 shadow-lg"
           >
             <h3 className="text-xl mb-4" style={{ color: "var(--brand-primary)" }}>Order Summary</h3>
             <ul className="space-y-3 mb-5">
               {items.map((it) => (
                 <li key={it.sku} className="flex items-center gap-3">
-                  <img src={it.image} alt="" className="bottle-img w-14 h-16 object-contain rounded-lg bg-[color:var(--brand-cream)]" />
+                  <img
+                    src={it.image?.startsWith("/api") ? `http://localhost:8001${it.image}` : (it.image || "/assets/products/HG1000_front.png")}
+                    alt=""
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = "/assets/products/HG1000_front.png";
+                    }}
+                    className="bottle-img w-14 h-16 object-contain rounded-lg bg-[color:var(--brand-cream)]"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold text-sm" style={{ color: "var(--brand-primary)" }}>{it.name}</div>
                     <div className="text-xs" style={{ color: "var(--brand-muted)" }}>{it.variant} × {it.quantity}</div>
                   </div>
-                  <div className="font-semibold text-sm" style={{ color: "var(--brand-text)" }}>
+                  <div className="font-semibold text-sm font-price" style={{ color: "var(--brand-text)" }}>
                     {formatINR(it.price * it.quantity)}
                   </div>
                 </li>
@@ -524,7 +528,7 @@ export default function CheckoutPage() {
               <Row label="Subtotal" value={formatINR(subtotal)} />
               <div data-testid={TESTIDS.orderGst} className="flex justify-between text-sm">
                 <span style={{ color: "var(--brand-text)" }}>GST ({gstPct}%)</span>
-                <span className="font-semibold" style={{ color: "var(--brand-text)" }}>{formatINR(gst)}</span>
+                <span className="font-semibold font-price" style={{ color: "var(--brand-text)" }}>{formatINR(gst)}</span>
               </div>
               <Row
                 label="Shipping"
@@ -533,13 +537,13 @@ export default function CheckoutPage() {
                     ? <span data-testid={TESTIDS.orderShipping} style={{ color: "var(--brand-muted)" }}>Enter PIN code</span>
                     : shipping.charge === 0
                       ? <span data-testid={TESTIDS.orderShipping} style={{ color: "var(--brand-primary)" }}>FREE</span>
-                      : <span data-testid={TESTIDS.orderShipping}>{formatINR(shipping.charge)}</span>
+                      : <span data-testid={TESTIDS.orderShipping} className="font-price">{formatINR(shipping.charge)}</span>
                 }
               />
               <div className="flex justify-between items-baseline pt-3 mt-1 border-t" style={{ borderColor: "var(--brand-border)" }}>
                 <span className="text-lg font-semibold" style={{ color: "var(--brand-text)" }}>Total</span>
-                <span data-testid={TESTIDS.orderTotal} className="text-2xl font-extrabold"
-                      style={{ color: "var(--brand-primary)", fontFamily: "'Playfair Display', serif" }}>
+                <span data-testid={TESTIDS.orderTotal} className="font-price text-2xl font-bold tracking-tight"
+                      style={{ color: "var(--brand-primary)" }}>
                   {formatINR(total)}
                 </span>
               </div>
@@ -552,7 +556,7 @@ export default function CheckoutPage() {
 }
 
 const inputCls =
-  "w-full rounded-xl border px-4 py-3 bg-white outline-none focus:border-[color:var(--brand-primary)]";
+  "w-full rounded-xl border border-amber-900/15 px-4 py-3 bg-white/75 backdrop-blur-xs outline-none focus:border-[color:var(--brand-primary)] focus:bg-white transition-all";
 
 function Field({ label, children, className = "" }) {
   return (
@@ -569,7 +573,7 @@ function Row({ label, value }) {
   return (
     <div className="flex justify-between text-sm">
       <span style={{ color: "var(--brand-text)" }}>{label}</span>
-      <span className="font-semibold" style={{ color: "var(--brand-text)" }}>{value}</span>
+      <span className="font-semibold font-price" style={{ color: "var(--brand-text)" }}>{value}</span>
     </div>
   );
 }

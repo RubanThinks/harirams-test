@@ -28,9 +28,14 @@ CONFIG_DIR = ROOT_DIR / "config"
 load_dotenv(ROOT_DIR / ".env")
 
 # MongoDB
-mongo_url = os.environ["MONGO_URL"]
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ["DB_NAME"]]
+mongo_url = os.environ.get("MONGO_URL", "mock")
+if mongo_url.startswith("mock") or mongo_url.startswith("mongomock"):
+    from mongomock_motor import AsyncMongoMockClient
+    client = AsyncMongoMockClient()
+    db = client[os.environ.get("DB_NAME", "hariram_db")]
+else:
+    client = AsyncIOMotorClient(mongo_url)
+    db = client[os.environ.get("DB_NAME", "hariram_db")]
 
 app = FastAPI(title="Hariram's Ghee API", version="1.0.0")
 api = APIRouter(prefix="/api")
@@ -587,10 +592,30 @@ async def serve_product_image(filename: str):
     local = ROOT_DIR / "uploads" / "products" / safe
     if local.exists():
         return FileResponse(local)
+    frontend_fallback = ROOT_DIR.parent / "frontend" / "public" / "assets" / "products" / "ghee_bottle.png"
+    if frontend_fallback.exists():
+        return FileResponse(frontend_fallback, media_type="image/png")
     raise HTTPException(status_code=404, detail="Image not found")
 
 
 app.include_router(api)
+
+@app.get("/robots.txt", response_class=Response)
+async def serve_robots_txt():
+    robots_path = ROOT_DIR.parent / "frontend" / "public" / "robots.txt"
+    if robots_path.exists():
+        with open(robots_path, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="text/plain")
+    return Response(content="User-agent: *\nAllow: /\nSitemap: https://www.harirams.in/sitemap.xml\n", media_type="text/plain")
+
+@app.get("/sitemap.xml", response_class=Response)
+async def serve_sitemap_xml():
+    sitemap_path = ROOT_DIR.parent / "frontend" / "public" / "sitemap.xml"
+    if sitemap_path.exists():
+        with open(sitemap_path, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="application/xml")
+    raise HTTPException(status_code=404, detail="Sitemap not found")
+
 
 # Serve uploaded product images (and any future admin uploads)
 UPLOAD_ROOT = ROOT_DIR / "uploads"

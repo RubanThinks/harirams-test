@@ -124,15 +124,14 @@ export default function AccountPage() {
               <div className="mt-6 grid grid-cols-2 gap-3 pt-5 border-t"
                    style={{ borderColor: "var(--brand-border)" }}>
                 <Stat label="Orders" value={profile.totalOrders} />
-                <Stat label="Total Spent" value={formatINR(profile.totalSpent)} />
+                <Stat label="Total Spent" value={formatINR(profile.totalSpent)} isPrice />
               </div>
             </aside>
 
-            {/* Right — Orders */}
+            {/* Right — Orders with Liquid Frosted Glass */}
             <section
               data-testid={TESTIDS.accountOrders}
-              className="lg:col-span-2 rounded-2xl border p-6 lg:p-7"
-              style={{ background: "var(--brand-surface)", borderColor: "var(--brand-border)" }}
+              className="lg:col-span-2 rounded-2xl liquid-glass border border-white/70 p-6 lg:p-7 shadow-sm"
             >
               <h2 className="text-2xl mb-1" style={{ color: "var(--brand-primary)" }}>Order History</h2>
               <p className="text-sm mb-5" style={{ color: "var(--brand-muted)" }}>
@@ -152,16 +151,15 @@ export default function AccountPage() {
                       <Link
                         to={`/order/${o.orderNumber}`}
                         data-testid={TESTIDS.accountOrderView(o.orderNumber)}
-                        className="flex items-center gap-4 p-4 rounded-xl border hover:border-[color:var(--brand-primary)] transition"
-                        style={{ borderColor: "var(--brand-border)", background: "white" }}
+                        className="flex items-center gap-4 p-4 rounded-xl border border-white/70 liquid-glass-pill hover:border-[color:var(--brand-primary)] hover:shadow-md transition-all"
                       >
-                        <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-xs"
                              style={{ background: "var(--brand-cream)" }}>
                           <Package className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                            <span className="font-bold text-sm sm:text-base"
+                            <span className="font-bold text-sm sm:text-base font-price"
                                   style={{ color: "var(--brand-primary)" }}>{o.orderNumber}</span>
                             <span className="text-xs" style={{ color: "var(--brand-muted)" }}>
                               {new Date(o.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
@@ -173,7 +171,7 @@ export default function AccountPage() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="font-bold" style={{ color: "var(--brand-primary)" }}>{formatINR(o.total)}</div>
+                          <div className="font-bold font-price" style={{ color: "var(--brand-primary)" }}>{formatINR(o.total)}</div>
                           <div className="text-[11px] uppercase tracking-wider" style={{ color: "var(--brand-muted)" }}>
                             View details <ChevronRight className="w-3 h-3 inline" />
                           </div>
@@ -207,13 +205,13 @@ function Field({ icon: Icon, label, children }) {
   );
 }
 
-function Stat({ label, value }) {
+function Stat({ label, value, isPrice = false }) {
   return (
-    <div>
+    <div className="p-2.5 rounded-xl bg-white/40 border border-amber-900/10">
       <div className="text-[11px] uppercase tracking-wider mb-1"
            style={{ color: "var(--brand-muted)" }}>{label}</div>
-      <div className="text-lg font-bold"
-           style={{ color: "var(--brand-primary)", fontFamily: "'Playfair Display', serif" }}>
+      <div className={`text-lg font-bold ${isPrice ? "font-price text-emerald-900" : ""}`}
+           style={{ color: "var(--brand-primary)", fontFamily: isPrice ? "'Poppins', sans-serif" : "'Playfair Display', serif" }}>
         {value}
       </div>
     </div>

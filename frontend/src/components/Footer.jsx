@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Instagram, Facebook, Youtube, Phone, Mail, Heart } from "lucide-react";
+import { Instagram, Facebook, Youtube, Phone, Mail, Heart, Check, Sparkles } from "lucide-react";
 import { useConfig } from "@/hooks/useConfig";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
@@ -39,150 +39,244 @@ export default function Footer() {
   if (!company || !footer) return null;
 
   return (
-    <footer data-testid={TESTIDS.footer} className="w-full" style={{ background: "var(--brand-cream)" }}>
-      <div className="container-brand py-6 lg:py-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-5">
-        {/* Brand column */}
-        <div className="lg:col-span-1">
-          <div className="flex items-center gap-3">
-            <img src="/assets/logo/logo.webp" alt="Hariram's HHN Logo" className="h-16 w-20 object-contain rounded-lg" />
-          </div>
-          <div className="mt-4">
-            <div className="text-2xl lg:text-3xl font-bold" style={{ color: "var(--brand-accent)", fontFamily: "'Playfair Display', serif" }}>
-              {company.brandName}
-            </div>
-            <span className="gold-ornament mt-1">
-              <span className="tagline-italic">{company.tagline}</span>
-            </span>
-          </div>
-          <p className="mt-5 text-sm lg:text-base leading-relaxed" style={{ color: "var(--brand-text)" }}>
-            {footer.brandLine || company.footerBrandLine}
-          </p>
-          <div className="mt-6">
-            <div className="text-xs uppercase tracking-wider mb-3" style={{ color: "var(--brand-muted)" }}>
-              Follow Us
-            </div>
-            <div className="flex gap-3">
-              {social?.instagram && (
-                <a href={social.instagram} target="_blank" rel="noopener noreferrer"
-                   className="w-10 h-10 rounded-full flex items-center justify-center text-white transition"
-                   style={{ background: "var(--brand-accent)" }} aria-label="Instagram">
-                  <Instagram className="w-4 h-4" />
-                </a>
-              )}
-              {social?.whatsapp && (
-                <a href={social.whatsapp} target="_blank" rel="noopener noreferrer"
-                   className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-                   style={{ background: "var(--brand-accent)" }} aria-label="WhatsApp">
-                  <WhatsAppIcon className="w-4 h-4" />
-                </a>
-              )}
-              {social?.facebook && (
-                <a href={social.facebook} target="_blank" rel="noopener noreferrer"
-                   className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-                   style={{ background: "var(--brand-accent)" }} aria-label="Facebook">
-                  <Facebook className="w-4 h-4" />
-                </a>
-              )}
-              {social?.youtube && (
-                <a href={social.youtube} target="_blank" rel="noopener noreferrer"
-                   className="w-10 h-10 rounded-full flex items-center justify-center text-white"
-                   style={{ background: "var(--brand-accent)" }} aria-label="YouTube">
-                  <Youtube className="w-4 h-4" />
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
+    <footer
+      data-testid={TESTIDS.footer}
+      className="w-full relative overflow-hidden bg-cover bg-center bg-no-repeat pt-12 sm:pt-16"
+      style={{
+        backgroundImage: "url('/assets/footer_pasture_bg.png')",
+        backgroundAttachment: "scroll",
+      }}
+    >
+      {/* Reduced contrast scrim overlay: lets the natural green pasture & cows photo shine through clearly */}
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{
+          background: "linear-gradient(to bottom, rgba(22, 16, 10, 0.35) 0%, rgba(18, 14, 8, 0.48) 50%, rgba(14, 10, 6, 0.68) 100%)",
+        }}
+      />
 
-        {/* Column: Quick Links */}
-        <FooterColumn title="Quick Links" links={footer.quickLinks} />
-        {/* Column: Customer Care */}
-        <FooterColumn title="Customer Care" links={footer.customerCare} />
-        {/* Column: My Account */}
-        <FooterColumn title="My Account" links={footer.myAccount} />
-
-        {/* Newsletter + support */}
-        <div>
-          <h4 className="text-xl lg:text-2xl mb-1" style={{ color: "var(--brand-primary)" }}>
-            {footer.newsletter?.heading || "Stay Connected"}
-          </h4>
-          <span className="gold-ornament" />
-          <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--brand-text)" }}>
-            {footer.newsletter?.subheading}
-          </p>
-          <form onSubmit={subscribe} className="mt-4 flex items-center gap-2 max-w-full">
-            <div className="flex-1 min-w-0 flex items-center rounded-full border pl-3 pr-2 py-0.5 bg-white"
-                 style={{ borderColor: "var(--brand-border)" }}>
-              <input
-                data-testid={TESTIDS.newsletterEmail}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                required
-                aria-label="Email address"
-                placeholder={footer.newsletter?.placeholder || "Enter your email"}
-                className="flex-1 min-w-0 bg-transparent outline-none text-xs py-1.5"
+      {/* Footer Content — Placed Directly on the Image (No White Box) */}
+      <div className="container-brand relative z-10 pb-10 sm:pb-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-6 text-stone-200">
+          
+          {/* Brand Column (3 cols) */}
+          <div className="lg:col-span-3">
+            <div className="flex items-center gap-3">
+              <img
+                src="/assets/logo/logo.webp"
+                alt="Hariram's HHN Logo"
+                className="h-14 w-18 object-contain rounded-xl p-1.5 bg-stone-900/60 backdrop-blur-md border border-amber-400/30 shadow-md"
               />
-              <Heart className="w-3.5 h-3.5" style={{ color: "var(--brand-accent)" }} />
             </div>
-            <button
-              data-testid={TESTIDS.newsletterSubmit}
-              type="submit"
-              disabled={busy}
-              className="btn-primary !py-2 !px-3 text-[11px] shrink-0"
-            >
-              {busy ? "..." : (footer.newsletter?.cta || "SUBSCRIBE")}
-            </button>
-          </form>
 
-          <div className="mt-8 pt-6 border-t" style={{ borderColor: "var(--brand-border)" }}>
-            <h5 className="text-lg" style={{ color: "var(--brand-primary)" }}>
-              {footer.supportHeading || "Need Help? We're Here!"}
-            </h5>
-            <ul className="mt-4 space-y-3">
-              <li className="flex items-center gap-3">
-                <span className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "#FCE9C9" }}>
-                  <Phone className="w-4 h-4" style={{ color: "var(--brand-accent)" }} />
+            <div className="mt-3">
+              <div
+                className="text-2xl lg:text-3xl font-bold tracking-tight text-[#F6C564] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                {company.brandName}
+              </div>
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className="w-4 h-px bg-amber-400/80" />
+                <span className="italic text-xs sm:text-sm font-medium text-amber-200 drop-shadow-sm">
+                  {company.tagline}
                 </span>
-                <div>
-                  <div className="font-semibold" style={{ color: "var(--brand-text)" }}>{company.customerCare}</div>
-                  <div className="text-xs" style={{ color: "var(--brand-muted)" }}>{company.customerCareHours}</div>
-                </div>
-              </li>
-              <li className="flex items-center gap-3">
-                <span className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "#FCE9C9" }}>
-                  <Mail className="w-4 h-4" style={{ color: "var(--brand-accent)" }} />
-                </span>
-                <a href={`mailto:${company.email}`} className="font-semibold hover:underline" style={{ color: "var(--brand-text)" }}>
-                  {company.email}
-                </a>
-              </li>
-            </ul>
+              </div>
+            </div>
+
+            <p
+              className="mt-4 text-xs sm:text-sm leading-relaxed text-stone-300 font-normal drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
+              style={{ fontFamily: "'Poppins', Arial, sans-serif" }}
+            >
+              {footer.brandLine || company.footerBrandLine}
+            </p>
+
+            {/* Social Connect */}
+            <div className="mt-5">
+              <div 
+                className="text-[11px] uppercase tracking-wider font-semibold mb-2.5 text-amber-300/90 drop-shadow-sm" 
+                style={{ fontFamily: "'Poppins', Arial, sans-serif" }}
+              >
+                Follow Our Heritage
+              </div>
+              <div className="flex gap-2.5">
+                {social?.instagram && (
+                  <a
+                    href={social.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all shadow-md hover:scale-105 border border-white/20 bg-amber-700/80 hover:bg-amber-600"
+                    aria-label="Instagram"
+                  >
+                    <Instagram className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                {social?.whatsapp && (
+                  <a
+                    href={social.whatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all shadow-md hover:scale-105 border border-white/20 bg-[#25D366] hover:brightness-110"
+                    aria-label="WhatsApp"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                {social?.facebook && (
+                  <a
+                    href={social.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all shadow-md hover:scale-105 border border-white/20 bg-[#1877F2] hover:brightness-110"
+                    aria-label="Facebook"
+                  >
+                    <Facebook className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                {social?.youtube && (
+                  <a
+                    href={social.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white transition-all shadow-md hover:scale-105 border border-white/20 bg-[#FF0000] hover:brightness-110"
+                    aria-label="YouTube"
+                  >
+                    <Youtube className="w-3.5 h-3.5" />
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
+
+          {/* Column: Quick Links (2 cols) */}
+          <div className="lg:col-span-2">
+            <FooterColumn title="Quick Links" links={footer.quickLinks} />
+          </div>
+
+          {/* Column: Customer Care (2 cols) */}
+          <div className="lg:col-span-2">
+            <FooterColumn title="Customer Care" links={footer.customerCare} />
+          </div>
+
+          {/* Column: My Account (2 cols) */}
+          <div className="lg:col-span-2">
+            <FooterColumn title="My Account" links={footer.myAccount} />
+          </div>
+
+          {/* Newsletter + Support Info (3 cols) */}
+          <div className="lg:col-span-3">
+            <h4
+              className="text-lg lg:text-xl font-bold mb-1 text-[#F6C564] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              {footer.newsletter?.heading || "Stay Connected"}
+            </h4>
+            <div className="w-8 h-0.5 bg-amber-400 mb-2.5 rounded-full" />
+
+            <p
+              className="text-xs leading-relaxed text-stone-300 font-normal drop-shadow-sm mb-3"
+              style={{ fontFamily: "'Poppins', Arial, sans-serif" }}
+            >
+              {footer.newsletter?.subheading || "Subscribe for wellness insights, festive offers, and Vedic recipes."}
+            </p>
+
+            {/* Newsletter Input Form: full width stacked for complete placeholder visibility */}
+            <form onSubmit={subscribe} className="space-y-2.5 max-w-full">
+              <div className="w-full flex items-center gap-2.5 rounded-xl border border-amber-400/40 px-3.5 py-2.5 bg-stone-950/70 backdrop-blur-md shadow-inner focus-within:border-amber-300 focus-within:ring-1 focus-within:ring-amber-300/40 transition-all">
+                <Mail className="w-4 h-4 shrink-0 text-amber-300" />
+                <input
+                  data-testid={TESTIDS.newsletterEmail}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  required
+                  aria-label="Email address"
+                  placeholder={footer.newsletter?.placeholder || "Enter your email"}
+                  className="w-full min-w-0 bg-transparent outline-none text-xs text-stone-100 placeholder:text-stone-300 font-medium"
+                  style={{ fontFamily: "'Poppins', Arial, sans-serif" }}
+                />
+              </div>
+              <button
+                data-testid={TESTIDS.newsletterSubmit}
+                type="submit"
+                disabled={busy}
+                className="w-full py-2.5 px-4 text-xs font-bold uppercase tracking-wider rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                style={{ fontFamily: "'Poppins', Arial, sans-serif" }}
+              >
+                {busy ? "..." : (footer.newsletter?.cta || "SUBSCRIBE")}
+              </button>
+            </form>
+
+            {/* Support Contact */}
+            <div className="mt-6 pt-5 border-t border-white/15">
+              <h5
+                className="text-base font-serif font-bold mb-2.5 text-[#F6C564] drop-shadow-sm"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                {footer.supportHeading || "Need Help? We're Here!"}
+              </h5>
+
+              <ul className="space-y-2.5 text-xs" style={{ fontFamily: "'Poppins', Arial, sans-serif" }}>
+                <li className="flex items-center gap-2.5">
+                  <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-amber-400/20 border border-amber-400/40 text-amber-300">
+                    <Phone className="w-3.5 h-3.5" />
+                  </span>
+                  <div>
+                    <div className="font-semibold text-stone-100 drop-shadow-xs">{company.customerCare}</div>
+                    <div className="text-[10.5px] text-amber-200/80">{company.customerCareHours}</div>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-amber-400/20 border border-amber-400/40 text-amber-300 mt-0.5">
+                    <Mail className="w-3.5 h-3.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <a
+                      href={`mailto:${company.email}`}
+                      className="font-medium text-stone-200 hover:text-amber-300 hover:underline break-all text-xs drop-shadow-xs leading-snug block"
+                      title={company.email}
+                    >
+                      {company.email}
+                    </a>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Compliance Strip directly on photo */}
+        <div
+          className="mt-8 pt-5 border-t border-white/15 flex flex-wrap items-center justify-center gap-3 text-xs text-stone-400 drop-shadow-sm"
+          style={{ fontFamily: "'Poppins', Arial, sans-serif" }}
+        >
+          <span className="font-medium">FSSAI: {company.fssaiNumber}</span>
+          <span className="text-amber-400/50">•</span>
+          <span className="font-medium">GSTIN: {company.gstNumber}</span>
+          <span className="text-amber-400/50">•</span>
+          <span className="font-medium">{company.legalCompanyName}</span>
         </div>
       </div>
 
-      {/* Compliance strip */}
-      <div className="container-brand pb-4 flex flex-wrap items-center justify-center gap-4 text-xs" style={{ color: "var(--brand-muted)" }}>
-        <span>FSSAI: {company.fssaiNumber}</span>
-        <span>•</span>
-        <span>GST: {company.gstNumber}</span>
-        <span>•</span>
-        <span>{company.legalCompanyName}</span>
-      </div>
-
-      {/* Red kolam copyright bar */}
-      <div className="copyright-bar py-4">
-        <div className="container-brand flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 text-sm">
-          <span aria-hidden style={{ color: "var(--brand-secondary)" }}>❋</span>
+      {/* Deep Temple Green Grounding Copyright Bar */}
+      <div
+        className="py-4 border-t border-amber-900/10 backdrop-blur-md"
+        style={{
+          background: "rgba(23, 76, 43, 0.94)",
+          fontFamily: "'Poppins', Arial, sans-serif",
+        }}
+      >
+        <div className="container-brand flex flex-col md:flex-row items-center justify-center gap-2.5 md:gap-6 text-xs text-amber-100">
+          <span aria-hidden className="text-amber-300">❋</span>
           <span>© {footer.copyrightYear || new Date().getFullYear()} {company.brandName}. All Rights Reserved.</span>
-          <span aria-hidden className="hidden md:inline">|</span>
-          <span className="inline-flex items-center gap-2">
+          <span aria-hidden className="hidden md:inline text-amber-400/50">|</span>
+          <span className="inline-flex items-center gap-1.5 text-amber-200">
             {footer.copyrightSuffix?.split("♥")[0] || "Made with "}
-            <Heart className="w-4 h-4 inline" fill="currentColor" style={{ color: "var(--brand-secondary)" }} />
+            <Heart className="w-3.5 h-3.5 inline text-amber-400 fill-amber-400" />
             {footer.copyrightSuffix?.split("♥")[1] || " for your family."}
           </span>
-          <span aria-hidden style={{ color: "var(--brand-secondary)" }}>❋</span>
+          <span aria-hidden className="text-amber-300">❋</span>
         </div>
       </div>
     </footer>
@@ -192,17 +286,23 @@ export default function Footer() {
 function FooterColumn({ title, links = [] }) {
   return (
     <div>
-      <h4 className="text-xl lg:text-2xl mb-1" style={{ color: "var(--brand-primary)" }}>{title}</h4>
-      <span className="gold-ornament" />
-      <ul className="mt-4 space-y-3">
+      <h4
+        className="text-lg lg:text-xl font-bold mb-1 text-[#F6C564] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+        style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+      >
+        {title}
+      </h4>
+      <div className="w-8 h-0.5 bg-amber-400 mb-2.5 rounded-full" />
+      <ul className="mt-3 space-y-2.5" style={{ fontFamily: "'Poppins', Arial, sans-serif" }}>
         {links.map((l) => {
           const isExternal = /^https?:\/\//.test(l.url || "");
-          const cls = "text-sm lg:text-[15px] hover:text-[color:var(--brand-accent)] transition-colors";
+          const cls = "text-xs lg:text-[13.5px] text-stone-300 hover:text-amber-300 transition-colors drop-shadow-xs font-normal";
           if (isExternal) {
             return (
               <li key={l.label}>
-                <a href={l.url} target="_blank" rel="noopener noreferrer" className={cls}
-                   style={{ color: "var(--brand-text)" }}>{l.label}</a>
+                <a href={l.url} target="_blank" rel="noopener noreferrer" className={cls}>
+                  {l.label}
+                </a>
               </li>
             );
           }
@@ -210,13 +310,17 @@ function FooterColumn({ title, links = [] }) {
           if (isHash) {
             return (
               <li key={l.label}>
-                <a href={l.url} className={cls} style={{ color: "var(--brand-text)" }}>{l.label}</a>
+                <a href={l.url} className={cls}>
+                  {l.label}
+                </a>
               </li>
             );
           }
           return (
             <li key={l.label}>
-              <Link to={l.url} className={cls} style={{ color: "var(--brand-text)" }}>{l.label}</Link>
+              <Link to={l.url} className={cls}>
+                {l.label}
+              </Link>
             </li>
           );
         })}

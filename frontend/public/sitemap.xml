@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd
+                            http://www.google.com/schemas/sitemap-image/1.1
+                            http://www.google.com/schemas/sitemap-image/1.1/sitemap-image.xsd">
+
+  <!-- Homepage: Pure Cow Ghee Brand Hub -->
+  <url>
+    <loc>https://www.harirams.in/</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/logo/logo.webp</image:loc>
+      <image:title>Hariram's Pure Cow Ghee Logo</image:title>
+      <image:caption>Authentic traditional Vedic Bilona pure cow ghee by Hariram Home Needs</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/products/HG1000_front.png</image:loc>
+      <image:title>Hariram's 1L Pure Cow Ghee Bottle</image:title>
+      <image:caption>1000ml authentic Danedar cow ghee glass jar</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Storefront: Buy Pure Cow Ghee Online -->
+  <url>
+    <loc>https://www.harirams.in/shop</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/products/HG1000_front.png</image:loc>
+      <image:title>Hariram's Pure Cow Ghee 1000ml Glass Jar</image:title>
+      <image:caption>1 Litre traditional Danedar pure cow ghee</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/products/HG500_front.png</image:loc>
+      <image:title>Hariram's Pure Cow Ghee 500ml Glass Jar</image:title>
+      <image:caption>500ml daily family pure cow ghee jar</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/products/HG200_front.png</image:loc>
+      <image:title>Hariram's Pure Cow Ghee 200ml Glass Jar</image:title>
+      <image:caption>200ml temple pooja and baby food trial pack</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/products/HG5000_front.png</image:loc>
+      <image:title>Hariram's Pure Cow Ghee 5000ml Tin</image:title>
+      <image:caption>5 Litre bulk household and temple pooja ghee tin</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Heritage & Vedic Science: Why Hariram's -->
+  <url>
+    <loc>https://www.harirams.in/why-hariram</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/vedic_danedar_ghee.jpg</image:loc>
+      <image:title>Traditional Danedar Cow Ghee in Brass Bowl</image:title>
+      <image:caption>Natural Beta-Prime polymorphic crystallization</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/evening_ghee_bg.jpg</image:loc>
+      <image:title>Chronobiology and Twilight Sandhya Ghee Ritual</image:title>
+      <image:caption>Evening golden milk elixir with pure cow ghee</image:caption>
+    </image:image>
+  </url>
+
+  <!-- FAQ: Purity Truths & Crystalline Science -->
+  <url>
+    <loc>https://www.harirams.in/faq</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/hariram_bottle_pasture.jpg</image:loc>
+      <image:title>Hariram's Pure Cow Ghee Bottle in South Indian Pasture</image:title>
+      <image:caption>Authentic 1000ml bottle with grazing indigenous cows</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/faq_cows_pasture.jpg</image:loc>
+      <image:title>Indigenous Indian Cows Grazing Naturally in South Indian Pasture</image:title>
+      <image:caption>Ethical, free-range grazing in natural rural meadows</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://www.harirams.in/assets/bilona_churn.jpg</image:loc>
+      <image:title>Traditional Wooden Bilona Mathani Churn</image:title>
+      <image:caption>Low-shear bi-directional churning of cultured curd</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Culinary Recipes & Golden Ratios -->
+  <url>
+    <loc>https://www.harirams.in/recipes</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Contact & Family Concierge -->
+  <url>
+    <loc>https://www.harirams.in/contact</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Customer Feedback & Reviews -->
+  <url>
+    <loc>https://www.harirams.in/feedback</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+
+  <!-- Legal & Trust Pages -->
+  <url>
+    <loc>https://www.harirams.in/shipping-delivery</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+  <url>
+    <loc>https://www.harirams.in/returns-refunds</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+  <url>
+    <loc>https://www.harirams.in/privacy-policy</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+  <url>
+    <loc>https://www.harirams.in/terms-and-conditions</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+  <url>
+    <loc>https://www.harirams.in/payment-policy</loc>
+    <lastmod>2026-10-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.50</priority>
+  </url>
+
+</urlset>

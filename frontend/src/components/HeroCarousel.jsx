@@ -88,14 +88,14 @@ export default function HeroCarousel() {
           }}
         />
 
-        {/* Prev / Next */}
+        {/* Prev / Next Frosted Glass Buttons */}
         {list.length > 1 && (
           <>
             <button
               data-testid={TESTIDS.heroPrev}
               onClick={() => goto(idx - 1)}
               aria-label="Previous banner"
-              className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full items-center justify-center bg-white/85 hover:bg-white shadow-lg transition"
+              className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full items-center justify-center bg-white/75 backdrop-blur-md border border-white/80 shadow-[0_8px_24px_rgba(0,0,0,0.14)] hover:bg-white hover:scale-105 transition-all duration-200"
             >
               <ChevronLeft className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
             </button>
@@ -103,16 +103,16 @@ export default function HeroCarousel() {
               data-testid={TESTIDS.heroNext}
               onClick={() => goto(idx + 1)}
               aria-label="Next banner"
-              className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full items-center justify-center bg-white/85 hover:bg-white shadow-lg transition"
+              className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full items-center justify-center bg-white/75 backdrop-blur-md border border-white/80 shadow-[0_8px_24px_rgba(0,0,0,0.14)] hover:bg-white hover:scale-105 transition-all duration-200"
             >
               <ChevronRight className="w-5 h-5" style={{ color: "var(--brand-primary)" }} />
             </button>
           </>
         )}
 
-        {/* Dots */}
+        {/* Frosted Glass Indicator Pill */}
         {list.length > 1 && (
-          <div className="absolute bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
+          <div className="absolute bottom-3 md:bottom-5 left-1/2 -translate-x-1/2 flex gap-2 items-center px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-md border border-white/25 shadow-sm">
             {list.map((b, i) => (
               <button
                 key={b.id}
@@ -120,12 +120,9 @@ export default function HeroCarousel() {
                 onClick={() => goto(i)}
                 aria-label={`Go to banner ${i + 1}`}
                 aria-current={i === idx}
-                className={`h-2 rounded-full transition-all ${
-                  i === idx ? "w-8" : "w-2 bg-white/70"
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === idx ? "w-8 bg-amber-500 shadow-sm" : "w-2 bg-white/60 hover:bg-white/90"
                 }`}
-                style={{
-                  background: i === idx ? "var(--brand-accent)" : undefined,
-                }}
               />
             ))}
           </div>

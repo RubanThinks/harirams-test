@@ -2,6 +2,7 @@ import React from "react";
 import { useConfig } from "@/hooks/useConfig";
 import { TESTIDS } from "@/constants/testIds";
 import { CircleDashed, ShieldCheck, Droplet, Bone, Sparkles } from "lucide-react";
+import ScrollReveal from "@/components/ui/ScrollReveal";
 
 const ICONS = {
   stomach: CircleDashed,
@@ -18,19 +19,15 @@ export default function BenefitsStrip() {
   return (
     <section
       data-testid={TESTIDS.benefits}
-      className="w-full py-3 lg:py-5"
+      className="w-full py-4 lg:py-6"
       style={{ background: "var(--brand-cream)" }}
       aria-label="Product benefits"
     >
       <div className="container-brand">
-        <div
-          className="rounded-3xl border relative overflow-hidden"
-          style={{
-            background: "var(--brand-surface)",
-            borderColor: "var(--brand-border)",
-            boxShadow: "0 12px 40px -24px rgba(23, 76, 43, 0.25)",
-          }}
-        >
+        <ScrollReveal direction="up" distance={20}>
+          <div
+            className="liquid-glass rounded-3xl relative overflow-hidden shadow-[0_12px_30px_-12px_rgba(59,36,20,0.08)] border border-amber-900/15"
+          >
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-4 gap-x-2 lg:gap-x-4 items-center p-4 lg:p-6">
             {benefits.map((b, i) => {
               const Icon = ICONS[b.icon] || Sparkles;
@@ -81,6 +78,7 @@ export default function BenefitsStrip() {
             </div>
           </div>
         </div>
+        </ScrollReveal>
       </div>
     </section>
   );

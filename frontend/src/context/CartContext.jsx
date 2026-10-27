@@ -11,12 +11,14 @@ export function CartProvider({ children }) {
     } catch { return []; }
   });
   const [open, setOpen] = useState(false);
+  const [recentNotification, setRecentNotification] = useState(null);
+  const [isBumping, setIsBumping] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const add = (product, qty = 1) => {
+  const add = (product, qty = 1, openDrawer = false) => {
     setItems((cur) => {
       const idx = cur.findIndex((i) => i.sku === product.sku);
       if (idx >= 0) {
@@ -36,8 +38,19 @@ export function CartProvider({ children }) {
         },
       ];
     });
-    setOpen(true);
+
+    // Gentle bubbling feedback: pump cart badge and show floating notification pill
+    setRecentNotification({ product, qty, id: Date.now() });
+    setIsBumping(true);
+    setTimeout(() => setIsBumping(false), 600);
+
+    // Only open the full drawer if explicitly requested (non-disruptive!)
+    if (openDrawer) {
+      setOpen(true);
+    }
   };
+
+  const clearNotification = () => setRecentNotification(null);
 
   const setQty = (sku, quantity) => {
     setItems((cur) =>
@@ -58,7 +71,20 @@ export function CartProvider({ children }) {
     [items]
   );
 
-  const value = { items, add, setQty, remove, clear, subtotal, count, open, setOpen };
+  const value = {
+    items,
+    add,
+    setQty,
+    remove,
+    clear,
+    subtotal,
+    count,
+    open,
+    setOpen,
+    recentNotification,
+    clearNotification,
+    isBumping,
+  };
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 

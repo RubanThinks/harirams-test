@@ -1,0 +1,50 @@
+# ==============================================================================
+# Hariram's Pure Cow Ghee — Production Robots.txt
+# Official Website: https://www.harirams.in
+# Company: HARIRAM HOME NEEDS (FSSAI: 12425002002875)
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /assets/
+Allow: /shop
+Allow: /why-hariram
+Allow: /recipes
+Allow: /faq
+Allow: /contact
+Allow: /feedback
+Allow: /search
+Allow: /terms-and-conditions
+Allow: /privacy-policy
+Allow: /returns-refunds
+Allow: /shipping-delivery
+Allow: /payment-policy
+
+# Protect private checkouts, user accounts, and administrative control panel
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /order/
+Disallow: /account/
+Disallow: /account/login
+Disallow: /api/admin/
+
+# Googlebot specific directives
+User-agent: Googlebot
+Allow: /
+Allow: /assets/
+
+User-agent: Googlebot-Image
+Allow: /assets/
+
+User-agent: Bingbot
+Allow: /
+Allow: /assets/
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+# Primary XML Sitemap Location
+Sitemap: https://www.harirams.in/sitemap.xml

@@ -1,9 +1,99 @@
 {
   "home": {
-    "title": "Hariram's Pure Cow Ghee — Traditional South Indian Ghee",
-    "description": "Handcrafted the traditional way, from the finest Indian cows. Trusted by South Indian families for generations. Shop 200ml, 500ml, 1L and 5L packs.",
-    "keywords": ["pure cow ghee", "south indian ghee", "traditional ghee", "hariram's", "cow ghee online", "chennai ghee"],
-    "canonical": "https://www.hariramsghee.com/",
+    "title": "Hariram's Pure Cow Ghee — Traditional Vedic A2 Cow Ghee",
+    "description": "Experience authentic, crystalline Danedar pure cow ghee handcrafted via traditional Bilona churning. 100% natural, rich in aroma, FSSAI certified.",
+    "keywords": [
+      "pure cow ghee",
+      "traditional bilona ghee",
+      "danedar cow ghee",
+      "south indian ghee",
+      "a2 cow ghee online",
+      "harirams pure cow ghee",
+      "chennai cow ghee",
+      "sacred vedic ghee"
+    ],
+    "canonical": "https://www.harirams.in/",
+    "ogImage": "/assets/hero/mother_daughter/desktop.webp",
+    "robots": "index,follow"
+  },
+  "shop": {
+    "title": "Shop Pure Cow Ghee — 200ml, 500ml, 1L & 5L Packs | Hariram's",
+    "description": "Buy 100% pure Danedar cow ghee online. Available in 200ml, 500ml, 1L glass jars and 5L tins. Shipped fresh with tamper-evident safe transit across India.",
+    "keywords": [
+      "buy pure cow ghee online",
+      "cow ghee 1 litre price",
+      "500ml cow ghee glass jar",
+      "5 litre cow ghee tin",
+      "bilona ghee chennai",
+      "pure cow ghee price",
+      "harirams shop"
+    ],
+    "canonical": "https://www.harirams.in/shop",
+    "ogImage": "/assets/products/HG1000_front.png",
+    "robots": "index,follow"
+  },
+  "why_hariram": {
+    "title": "Why Hariram's — The Sacred Geometry & Vedic Science of Pure Ghee",
+    "description": "Discover the architectural physics of Danedar crystals, ancient Bilona bi-directional churning, Charaka Samhita shastric proofs, and why ghee in the evening heals.",
+    "keywords": [
+      "why pure cow ghee",
+      "danedar crystalline ghee",
+      "vedic bilona method",
+      "charaka samhita ghee benefits",
+      "ghee in the evening",
+      "ayurvedic ghee science",
+      "pure ghee vs market ghee",
+      "beta prime crystal ghee"
+    ],
+    "canonical": "https://www.harirams.in/why-hariram",
+    "ogImage": "/assets/hero/mother_daughter/desktop.webp",
+    "robots": "index,follow"
+  },
+  "recipes": {
+    "title": "Vedic & South Indian Ghee Recipes — Culinary Engineering by Hariram's",
+    "description": "Authentic recipes for Akshaya Paruppu Saatham, Temple Prasadam Sakkarai Pongal, Evening Golden Ojas Elixir, Mylapore Ghee Roast Dosai, and Kumbakonam Ghee Coffee.",
+    "keywords": [
+      "pure ghee recipes",
+      "south indian paruppu saatham",
+      "temple sakkarai pongal recipe",
+      "evening golden milk with ghee",
+      "crispy ghee roast dosai",
+      "ghee filter coffee",
+      "traditional ghee cooking",
+      "ayurvedic ojas milk"
+    ],
+    "canonical": "https://www.harirams.in/recipes",
+    "ogImage": "/assets/hero/mother_daughter/desktop.webp",
+    "robots": "index,follow"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions — Pure Cow Ghee Science & Vedic Tradition",
+    "description": "Honest, scientifically-grounded answers on Danedar texture, Bilona churning, Vedic scripture quotes, evening consumption, lactose sensitivity, and storage.",
+    "keywords": [
+      "cow ghee faq",
+      "why is ghee granular",
+      "danedar texture science",
+      "ghee shelf life and storage",
+      "can lactose intolerant eat ghee",
+      "ghee smoke point",
+      "pooja and deepam ghee"
+    ],
+    "canonical": "https://www.harirams.in/faq",
+    "ogImage": "/assets/hero/mother_daughter/desktop.webp",
+    "robots": "index,follow"
+  },
+  "contact": {
+    "title": "Contact Us — Hariram's Heritage Family Concierge & Support",
+    "description": "We are for you. Connect directly via WhatsApp or phone at +91 95000 21456, email, or visit our West Mambalam headquarters in Chennai. Quick response within 2 hours.",
+    "keywords": [
+      "contact harirams ghee",
+      "hariram home needs chennai",
+      "bulk ghee for pooja",
+      "corporate ghee gifting",
+      "harirams customer care number",
+      "pure ghee order whatsapp"
+    ],
+    "canonical": "https://www.harirams.in/contact",
     "ogImage": "/assets/hero/mother_daughter/desktop.webp",
     "robots": "index,follow"
   }

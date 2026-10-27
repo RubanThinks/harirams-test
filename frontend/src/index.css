@@ -2,8 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Brand fonts — Playfair (headings) + Lora (body) + Cormorant (accents) */
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Lora:ital,wght@0,400..700;1,400..700&family=Cormorant+Garamond:ital,wght@0,400..700;1,400..700&display=swap");
+/* Brand fonts — Poppins, Arial, & Playfair Display */
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap");
+
+.font-price, .gpay-price {
+    font-family: "Poppins", Arial, sans-serif !important;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    letter-spacing: -0.02em;
+}
+
+@keyframes cartBump {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.3) rotate(-8deg); }
+    50% { transform: scale(1.18) rotate(6deg); }
+    75% { transform: scale(1.25) rotate(-3deg); }
+    100% { transform: scale(1); }
+}
+
+.cart-bump {
+    animation: cartBump 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
 @layer base {
     :root {
@@ -45,24 +64,34 @@
 
 @layer base {
     * { @apply border-border; }
-    html { scroll-behavior: smooth; }
+    html {
+        scroll-behavior: smooth;
+    }
     body {
         margin: 0;
         background-color: var(--brand-cream);
         color: var(--brand-text);
-        font-family: "Lora", Georgia, serif;
-        font-size: 16px;
-        line-height: 1.6;
+        font-family: "Poppins", Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 15.5px;
+        line-height: 1.65;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
     h1, h2, h3, h4, h5 {
-        font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+        font-family: "Playfair Display", Georgia, "Times New Roman", serif;
         font-weight: 700;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.015em;
         color: var(--brand-primary);
     }
     ::selection { background: var(--brand-secondary); color: var(--brand-text); }
+}
+
+/* Poppins Pricing & Numerical Typography */
+.font-price, .font-poppins, [data-price] {
+    font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-feature-settings: "tnum" 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
 }
 
 /* ----- Kolam / decorative gold divider ----- */
@@ -116,7 +145,7 @@
     text-transform: uppercase;
     padding: 14px 22px;
     border-radius: 12px;
-    box-shadow: 0 6px 16px -6px rgba(217, 63, 63, 0.55);
+    box-shadow: 0 4px 14px -3px rgba(59, 36, 20, 0.2);
     transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     display: inline-flex;
     align-items: center;
@@ -126,7 +155,7 @@
 .btn-primary:hover:not(:disabled) {
     background: var(--brand-accent-dark);
     transform: translateY(-1px);
-    box-shadow: 0 10px 22px -8px rgba(178, 34, 34, 0.6);
+    box-shadow: 0 6px 18px -4px rgba(59, 36, 20, 0.28);
 }
 .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
 
@@ -152,51 +181,249 @@
     font-weight: 600;
 }
 
-/* ----- Product cards ----- */
-.product-card {
-    background: var(--brand-surface);
-    border: 1.5px solid var(--brand-border);
-    border-radius: 20px;
-    padding: 18px 16px 16px;
-    display: flex; flex-direction: column; align-items: center;
-    text-align: center;
+/* ----- Luxurious White Product Card (Square Proportions, Curved Edges) ----- */
+.product-card, .luxury-product-card {
     position: relative;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-.product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px -20px rgba(23, 76, 43, 0.25);
-    border-color: var(--brand-secondary);
-}
-.pack-badge {
-    position: absolute;
-    top: 18px;
-    left: 18px;
-    background: var(--brand-accent);
-    color: white;
-    border-radius: 9999px;
-    padding: 8px 14px;
-    font-weight: 700;
-    font-size: 12px;
-    line-height: 1.15;
-    min-width: 54px;
+    background: #FFFFFF;
+    border-radius: 22px;
+    border: 1.5px solid #EBE4D8;
+    padding: 20px 18px 20px 18px;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    justify-content: space-between;
     text-align: center;
-    box-shadow: 0 6px 16px -6px rgba(217, 63, 63, 0.6);
-    white-space: nowrap;
+    box-shadow: 0 4px 20px -3px rgba(60, 36, 18, 0.07), 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.22s ease;
 }
-.pack-badge.blue { background: #2d6cdf; box-shadow: 0 6px 16px -6px rgba(45, 108, 223, 0.6); }
-.bestseller-ribbon {
-    position: absolute;
-    top: -14px; left: 50%; transform: translateX(-50%);
-    background: var(--brand-accent);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 9999px;
+
+.product-card:hover, .luxury-product-card:hover {
+    transform: translateY(-6px);
+    border-color: #D4AF37;
+    box-shadow: 0 16px 36px -8px rgba(60, 36, 18, 0.13), 0 2px 8px rgba(212, 175, 55, 0.08);
+}
+
+/* Clean Product Image Backdrop */
+.product-image-stage {
+    position: relative;
+    width: 100%;
+    height: 205px;
+    border-radius: 18px;
+    background: #FAF8F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    transition: background 0.25s ease;
+}
+
+.product-card:hover .product-image-stage,
+.luxury-product-card:hover .product-image-stage {
+    background: #F8F5EE;
+}
+
+/* Amazon & Flipkart Style Tactile Press Button */
+.tactile-press-btn {
+    position: relative;
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 12px;
     font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    box-shadow: 0 8px 20px -6px rgba(217, 63, 63, 0.55);
-    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+    /* Brand-matched golden ghee theme */
+    background: linear-gradient(180deg, #F5A623 0%, #E29010 100%);
+    border: 1.5px solid #C87D08;
+    color: #241404;
+    box-shadow: 0 3px 6px rgba(200, 125, 8, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.tactile-press-btn:hover {
+    background: linear-gradient(180deg, #F8B438 0%, #EA9815 100%);
+    box-shadow: 0 4px 10px rgba(200, 125, 8, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* Amazon / Flipkart physical tactile press effect */
+.tactile-press-btn:active {
+    transform: translateY(2px) scale(0.98);
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.22);
+    border-color: #A36406;
+}
+
+.tactile-press-btn.is-success {
+    background: linear-gradient(180deg, #16A34A 0%, #15803D 100%) !important;
+    border-color: #166534 !important;
+    color: #FFFFFF !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.18) !important;
+    transform: none !important;
+}
+
+.tactile-press-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: grayscale(40%);
+}
+
+
+
+/* Header Frosted Glass when scrolled */
+.header-scrolled {
+    background: rgba(255, 248, 238, 0.88) !important;
+    backdrop-filter: blur(20px) saturate(185%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(185%) !important;
+    border-bottom: 1px solid rgba(59, 36, 20, 0.08) !important;
+    box-shadow: 0 8px 24px -8px rgba(59, 36, 20, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8) inset !important;
+}
+
+/* Liquid Frosted Glass Utilities */
+.liquid-glass {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 248, 238, 0.76) 100%);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 24px -8px rgba(59, 36, 20, 0.06), 
+                inset 0 1px 2px 0 rgba(255, 255, 255, 0.9);
+}
+
+.liquid-glass-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.90) 0%, rgba(255, 252, 245, 0.82) 55%, rgba(255, 246, 233, 0.72) 100%);
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border: 1.5px solid rgba(234, 223, 199, 0.8);
+}
+
+.liquid-glass-track {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 248, 238, 0.70) 100%);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+}
+
+.liquid-glass-pill {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 248, 235, 0.78) 100%);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 14px -3px rgba(45, 30, 15, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+/* Shimmering Liquid Text (Apple iPhone slide to unlock style) */
+@keyframes liquidShimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.swipe-text-shimmer {
+    background: linear-gradient(
+        90deg,
+        rgba(59, 36, 20, 0.6) 0%,
+        rgba(59, 36, 20, 0.6) 25%,
+        rgba(255, 255, 255, 1) 50%,
+        rgba(255, 255, 255, 1) 58%,
+        rgba(59, 36, 20, 0.6) 75%,
+        rgba(59, 36, 20, 0.6) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: liquidShimmer 2.8s infinite linear;
+    user-select: none;
+}
+
+.iphone-slider-shimmer {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.5) 0%,
+        rgba(255, 255, 255, 0.5) 25%,
+        rgba(255, 255, 255, 1) 50%,
+        rgba(255, 255, 255, 1) 55%,
+        rgba(255, 255, 255, 0.5) 75%,
+        rgba(255, 255, 255, 0.5) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: liquidShimmer 2.4s infinite linear;
+    user-select: none;
+}
+
+/* Apple UI SF Pro font */
+.font-sf, .font-apple {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", system-ui, sans-serif;
+    letter-spacing: -0.015em;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Solid Tactile Swipe Slider Track */
+.solid-slider-track {
+    background: #F4EBE0;
+    border: 1.5px solid #DFCDB5;
+    box-shadow: inset 0 2px 4px rgba(60, 36, 18, 0.08);
+}
+
+.solid-slider-thumb {
+    background: #FFFFFF;
+    border: 1.5px solid #DFCDB5;
+    box-shadow: 0 3px 8px rgba(60, 36, 18, 0.18), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.solid-slider-thumb:hover {
+    border-color: #C0392B;
+}
+
+.solid-slider-success {
+    background: #15803D !important;
+    border: 1.5px solid #166534 !important;
+    box-shadow: 0 2px 8px rgba(21, 128, 61, 0.25);
+}
+
+@keyframes scaleUp {
+    0% { transform: scale(0.9); opacity: 0; }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); opacity: 1; }
+}
+.animate-scale-up {
+    animation: scaleUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+    animation: spinSlow 6s linear infinite;
+}
+
+/* Custom Frosted Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: var(--brand-cream);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(216, 155, 34, 0.4);
+    border-radius: 9999px;
+    border: 2px solid var(--brand-cream);
+    backdrop-filter: blur(8px);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(216, 155, 34, 0.7);
 }
 
 /* ----- Hero carousel ----- */
@@ -247,27 +474,72 @@
 .slide-exit { opacity: 1; }
 .slide-exit-active { opacity: 0; transition: opacity 700ms ease; }
 
-/* Legal document typography */
+/* Legal and Content Document Typography — Poppins, Arial & Playfair Display */
+.legal-body {
+    font-family: "Poppins", Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
 .legal-body h1, .legal-body h2, .legal-body h3, .legal-body h4 {
     color: var(--brand-primary);
-    font-family: "Playfair Display", Georgia, serif;
-    line-height: 1.25;
-    margin: 1.5rem 0 0.75rem;
+    font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+    line-height: 1.3;
+    margin: 1.75rem 0 0.85rem;
+    letter-spacing: -0.015em;
 }
-.legal-body h1 { font-size: 1.8rem; }
-.legal-body h2 { font-size: 1.4rem; }
-.legal-body h3 { font-size: 1.15rem; }
-.legal-body p, .legal-body li { color: var(--brand-text); font-size: 15px; line-height: 1.7; }
-.legal-body ul, .legal-body ol { margin: 0.5rem 0 1rem 1.25rem; }
+.legal-body h1 { font-size: 2.1rem; }
+.legal-body h2 { font-size: 1.6rem; }
+.legal-body h3 { font-size: 1.25rem; }
+.legal-body p, .legal-body li { 
+    color: var(--brand-text); 
+    font-family: "Poppins", Arial, sans-serif;
+    font-size: 15.5px; 
+    line-height: 1.8; 
+}
+.legal-body ul, .legal-body ol { margin: 0.75rem 0 1.25rem 1.5rem; }
 .legal-body ul { list-style: disc; }
 .legal-body ol { list-style: decimal; }
-.legal-body a { color: var(--brand-accent); text-decoration: underline; text-underline-offset: 3px; }
-.legal-body strong { color: var(--brand-primary); }
-.legal-body hr { border: 0; border-top: 1px solid var(--brand-border); margin: 1.5rem 0; }
-.legal-body table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-.legal-body th, .legal-body td { border: 1px solid var(--brand-border); padding: 6px 10px; text-align: left; }
-.legal-body th { background: var(--brand-cream); }
-.legal-body code { background: #F0EAD8; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+.legal-body a { color: var(--brand-accent); text-decoration: underline; text-underline-offset: 3px; font-weight: 500; }
+.legal-body strong { color: var(--brand-primary); font-weight: 600; }
+.legal-body hr { border: 0; border-top: 1.5px solid var(--brand-border); margin: 2rem 0; opacity: 0.7; }
+.legal-body table { 
+    width: 100%; 
+    border-collapse: separate; 
+    border-spacing: 0; 
+    margin: 1.5rem 0; 
+    border: 1.5px solid var(--brand-border); 
+    border-radius: 14px; 
+    overflow: hidden; 
+    background: #FFFFFF;
+}
+.legal-body th { 
+    background: #FAF3E6; 
+    font-family: "Playfair Display", Georgia, serif; 
+    font-size: 15px; 
+    font-weight: 700; 
+    color: var(--brand-primary); 
+    padding: 12px 16px; 
+    border-bottom: 1.5px solid var(--brand-border); 
+    text-align: left;
+}
+.legal-body td { 
+    padding: 12px 16px; 
+    font-family: "Poppins", Arial, sans-serif; 
+    font-size: 14px; 
+    border-bottom: 1px solid #F2E8D5; 
+    color: #4A3525; 
+    line-height: 1.6;
+}
+.legal-body tr:last-child td { border-bottom: none; }
+.legal-body tr:nth-child(even) td { background: #FDFAF5; }
+.legal-body code { 
+    font-family: "Poppins", Arial, sans-serif; 
+    font-weight: 600; 
+    color: #8C4700; 
+    background: #FFF4DE; 
+    padding: 3px 8px; 
+    border-radius: 6px; 
+    border: 1px solid #F5E0B7; 
+    font-size: 0.92em; 
+}
 
 /* Placeholder bottle image (black bg) — blend black to background */
 .bottle-img {
